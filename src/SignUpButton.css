@@ -1,0 +1,17 @@
+.sign-up{
+    display: flex;
+    justify-content: center;
+    padding-left: 5rem;
+}
+.sign-up .sign-up-button{
+    background-color: #2C00AA;
+    color: white;
+    font-family: "Palanquin";
+    text-align: center;
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 1.5rem;
+    border: none;
+}
