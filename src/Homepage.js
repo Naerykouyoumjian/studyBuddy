@@ -16,47 +16,52 @@ import reminder from './iconmonstr-note-26.svg';
 import Navbar from './Navbar.js';
 import SignUpButton from './SignUpButton.js';
 import useWindowWidth from './useWindowWidth.js';
+import useWindowHeight from './useWindowHeight.js';
 
 //adding homepage elements
 function Homepage(){
     //getting window width for later use
     const {width} = useWindowWidth();
+    const {height} = useWindowHeight();
     //returning homepage elements
     return (<>
-        <Navbar />
+        <Navbar isSignedIn = {false} />
 
         <div className = "homepage-imgbox">
             <img className = "hp-image" 
-                src = {require('./homepage-image.png')} 
+                src = {require('./machinelearning.jpg')} 
                 alt = "AI-Human Silhouette" 
-                width={width} />
+                width = {width} 
+                height = {height / 1.5}
+                />
         </div>
         
         <h1 className = "headline">
             Let AI help you make your life easier
         </h1>
 
-        <div className = "feature-list">
-            <h3 className = "study-plans">
-                Customized Study Plans
-                <img className = "tools-icon"
+        <div className = "feature-headers">
+            <h2 className = "plans">Customized Study Plans</h2>
+            <h2 className = "lists">Personalized To-Do Lists</h2>
+            <h2 className = "rem-serv">Reminder Service</h2>
+        </div>
+
+        <div className = "feature-descriptions">
+            <p className = "plan-description"> Save time and effort with Study Buddy's AI-powered study schedules.</p>
+            <p className = "list-description"> Easily customize and organize your study tasks.</p>
+            <p className = "rem-description"> Never miss a study session or deadline with Studdy Buddy's built-in reminder service.</p>
+        </div>
+
+        <div className = "feature-icons">
+            <img className = "tools-icon"
                 src = {tools}
                 alt = "pencil crossed over ruler icon" />
-            </h3>
-
-            <h3 className = "to-do-lists">
-                Personalized To-Do Lists
-                <img className = "list-icon"
-                src = {list}
-                alt = "three lines with bullet points" />
-            </h3>
-
-            <h3 className = "reminders">
-                Reminder Service
-                <img className = "reminder-icon"
-                src = {reminder}
-                alt = "page with exclimation point being turned" />
-            </h3>
+            <img className = "list-icon"
+                    src = {list}
+                    alt = "three lines with bullet points" />
+            <img className = "reminder-icon"
+                    src = {reminder}
+                    alt = "page with exclimation point being turned" />
         </div>
 
         <SignUpButton />

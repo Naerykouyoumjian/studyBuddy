@@ -1,7 +1,6 @@
 .hp-image{
     max-width: 100%;
     max-height: 100vh;
-    margin: auto;
 }
 
 .headline{
@@ -11,23 +10,54 @@
     display: flex;
     justify-content: center;
     text-align: center;
+    margin-bottom: 0;
 }
-.feature-list{
+
+.feature-headers{
+    font-size: 1rem;
+    font-family: "Palanquin";
+    color: #2C00AA;
     display: flex;
     justify-content: space-around;
-    align-items: center;
-    color: #2C00AA;
-    padding: 3rem;
+    
+   
 }
 
-.feature-list .study-plans, .to-do-lists, .reminders{
-    font-size: 1.5rem;
+.feature-headers .plans{
+    padding-left: 1.5rem;
+    padding-right: .5rem;
+}
+
+.feature-headers .lists{
+    padding-right: 2rem;
+}
+
+.feature-headers .rem-serv{
+    padding-left: .5rem;
+    padding-right: 2rem;
+}
+
+
+
+.feature-descriptions{
+    font-size: 1.25rem;
     font-family: "Palanquin";
+    color: #2C00AA;
+    text-align: center;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: space-around;
+    align-items: top;
+    margin-left: 1rem;
+}
+.plan-description, .list-description, .rem-description{
+    width: 15rem;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
-.tools-icon, .list-icon, .reminder-icon{
-    margin-top: 2rem;
+.feature-icons
+{
+    display: flex;
+    justify-content: space-around;
+    margin-left: 1rem;
 }

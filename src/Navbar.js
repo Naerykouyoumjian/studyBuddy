@@ -5,7 +5,7 @@ import '@fontsource/new-rocker';
 import '@fontsource/palanquin';
 
 //adding Navbar elements
-function Navbar(){
+const Navbar = ({isSignedIn}) =>{
     return(<>
     <nav className = "navbar">
         <div className = "navbar-left">
@@ -15,18 +15,20 @@ function Navbar(){
         </div>
         <div className = "navbar-right">
           <ul className = "navbar-links">
-            <li>
-              <a href ="/">Home</a>
-            </li>
-            <li>
-              <a href ="/">Features</a>
-            </li>
-            <li>
-              <a href ="/">FAQ</a>
-            </li>
-            <li>
-              <a href ="/">Login</a>
-            </li>
+            {isSignedIn ? ( 
+              <>
+                <li><a href ="/">Home</a></li>
+                <li><a href ="/">Dashboard</a></li>
+                <li><a href ="/">FAQ</a></li>
+                <li className = "signOut"><a href ="/">Sign-Out</a></li>
+              </>
+            ) : (
+              <>
+                <li><a href ="/">Home</a></li>
+                <li><a href ="/">FAQ</a></li>
+                <li className = "signIn"><a href ="/">Sign In</a></li>
+              </>
+            )} 
           </ul>
         </div>
       </nav>
