@@ -1,0 +1,63 @@
+.hp-image{
+    max-width: 100%;
+    max-height: 100vh;
+}
+
+.headline{
+    font-size: 3rem;
+    font-family: "Palanquin";
+    color: #2C00AA;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 0;
+}
+
+.feature-headers{
+    font-size: 1rem;
+    font-family: "Palanquin";
+    color: #2C00AA;
+    display: flex;
+    justify-content: space-around;
+    
+   
+}
+
+.feature-headers .plans{
+    padding-left: 1.5rem;
+    padding-right: .5rem;
+}
+
+.feature-headers .lists{
+    padding-right: 2rem;
+}
+
+.feature-headers .rem-serv{
+    padding-left: .5rem;
+    padding-right: 2rem;
+}
+
+
+
+.feature-descriptions{
+    font-size: 1.25rem;
+    font-family: "Palanquin";
+    color: #2C00AA;
+    text-align: center;
+    display: flex;
+    justify-content: space-around;
+    align-items: top;
+    margin-left: 1rem;
+}
+.plan-description, .list-description, .rem-description{
+    width: 15rem;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.feature-icons
+{
+    display: flex;
+    justify-content: space-around;
+    margin-left: 1rem;
+}
