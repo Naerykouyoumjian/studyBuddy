@@ -15,6 +15,9 @@ const Navbar = ({isSignedIn}) =>{
         </div>
         <div className = "navbar-right">
           <ul className = "navbar-links">
+            {/*Check if user is signed in, when true show options 
+              for the signed in navbar. When false show main navbar
+            */}
             {isSignedIn ? ( 
               <>
                 <li><a href ="/">Home</a></li>

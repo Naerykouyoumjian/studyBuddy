@@ -25,6 +25,9 @@ function Homepage(){
     const {height} = useWindowHeight();
     //returning homepage elements
     return (<>
+        {/* takes boolean to varify sign in status.
+            currently takes manual input, but will eventually
+            recieve a variable to confirm users sign in status */}
         <Navbar isSignedIn = {false} />
 
         <div className = "homepage-imgbox">
