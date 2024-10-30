@@ -2,7 +2,7 @@
 use "npm install @fontsource/new-rocker" in terminal to install font family
 use "npm install @fontsource/palanquin" in terminal to install font family 
 **********************/
-
+import React from 'react';
 //importing css styling for homepage 
 import './Homepage.css';
 //importing fonts
@@ -19,7 +19,7 @@ import useWindowWidth from './useWindowWidth.js';
 import useWindowHeight from './useWindowHeight.js';
 
 //adding homepage elements
-function Homepage(){
+function Homepage({onSignUpClick}){
     //getting window width for later use
     const {width} = useWindowWidth();
     const {height} = useWindowHeight();
@@ -66,9 +66,13 @@ function Homepage(){
                     src = {reminder}
                     alt = "page with exclimation point being turned" />
         </div>
-
-        <SignUpButton />
-    </>)
+        <div className="sign-up-container">
+        <button onClick={onSignUpClick} className="sign-up-button">
+            Sign Up Here
+            </button>
+        </div>
+    </>
+    );
 }
   
 export default Homepage;

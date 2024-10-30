@@ -14,4 +14,9 @@
     margin-bottom: 1rem;
     border-radius: 1.5rem;
     border: none;
+    cursor: pointer;
+}
+
+.sign-up .sign-up-button:hover{
+background-color: #24008A;
 }

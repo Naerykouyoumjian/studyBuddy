@@ -8,8 +8,7 @@ import Homepage from './Homepage.js';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <Homepage />
-    {/* <App /> */}
+    <App/>
   </React.StrictMode>
 );
 
