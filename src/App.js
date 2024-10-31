@@ -15,6 +15,7 @@ function App() {
   const handleLogin = () => {
     setIsAuthenticated(true);
     setShowLogin(false);
+    navigate("/dashboard");
   };
 
   const handleShowSignUp = () => {
@@ -27,6 +28,7 @@ function App() {
   const handleShowLogin = () => {
     setShowLogin(true);
     setShowSignUp(false);
+    navigate("/signin");
   };
 
   return (
