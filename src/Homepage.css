@@ -61,3 +61,25 @@
     justify-content: space-around;
     margin-left: 1rem;
 }
+
+.sign-up-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.sign-up-button {
+    background-color: #2C00AA;
+    color: white;
+    font-family: "Palanquin";
+    font-size: 1rem;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 1.5rem;
+    cursor: pointer;
+    text-align: center;
+}
+
+.sign-up-button:hover {
+    background-color: #24008A;
+}

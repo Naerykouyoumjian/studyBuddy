@@ -1,0 +1,144 @@
+.sign-up-form{
+max-width: 400px;
+width: 100%;
+margin: 50px auto;
+padding: 20px 40px 20px 20px;
+border: 1px solid #ddd;
+border-radius: 8px;
+background-color: white;
+box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+text-align: center;
+font-family: 'Palanquin', sans-serif;
+}
+
+.sign-up-form h2{
+font-size: 26px;
+color: #333;
+margin-bottom: 20px;
+font-weight: bold;
+}
+
+.sign-up-form p{
+font-size: 14px;
+color: #666;
+margin-top: 5px;
+margin-bottom: 20px;
+}
+
+.sign-up-form input{
+width: 100%;
+padding: 12px;
+margin: 8px 0;
+border: 1px solid #ccc;
+border-radius: 4px;
+font-size: 16px;
+}
+
+.sign-up-form label{
+font-size: 14px;
+color: #333;
+text-align: left;
+margin-bottom: 5px;
+}
+
+.sign-up-form input[type="text"],
+.sign-up-form input[type="email"],
+.sign-up-form input[type="password"] {
+width: 100%;
+padding: 12px;
+margin-bottom: 15px;
+border: 1px solid #ccc;
+border-radius: 4px;
+font-size: 16px;
+}
+
+.sign-up-form .checkbox-container{
+display: flex;
+align-items: center;
+justify-content: flex-start;
+font-size: 15px;
+color: #666;
+gap: 5px;
+margin-top: 15px;
+gap: 5px;
+text-align: left;
+}
+
+.sign-up-form .checkbox-container label {
+    display: inline;
+    font-size: 14px;
+    color: #333;
+    margin-left: 5px;
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin: 0px;
+}
+
+.sign-up-form .checkbox-container a {
+    color: #2C00AA;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 3px;
+}
+
+.sign-up-form .checkbox-container a:hover {
+    text-decoration: underline;
+}
+
+.sign-up-form button {
+width: 100%;
+padding: 12px;
+background-color: #2C00AA;
+color: white;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+font-size: 16px;
+font-weight: bold;
+margin-top: 20px;
+}
+
+.sign-up-form button: hover{
+background-color: #24008A;
+}
+
+.sign-up-form .google-signup{
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 10px;
+font-size: 16px;
+font-weight: bold;
+margin-top: 15px;
+background-color: #fff;
+color: #333;
+border: 1px solid #ddd;
+border-radius: 4px;
+cursor: pointer;
+}
+
+.sign-up-form .google-signup img{
+margin-right: 8px;
+}
+
+.sign-up-form .alternate-option{
+margin-top: 20px;
+font-size: 14px;
+color: #666;
+}
+
+.sign-up-form .alternate-option a{
+color: #2C00AA;
+text-decoration: none;
+}
+
+.sign-up-form .alternate-option a:hover{
+text-decoration: underline;
+}
+
+.error-message {
+color: red;
+font-size: 14px;
+margin-top: 10px;
+}
