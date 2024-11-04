@@ -78,7 +78,7 @@ function SignUp(){
         </div> */}
 
         <div className="alternate-option">
-            <span>Already have an account?<a href="#login">Log in</a></span>
+            <span>Already have an account?<a href="/signin">Log in</a></span>
         </div>
     </div>
     </div>
