@@ -3,6 +3,7 @@ import './SignUp.css';
 import Navbar from './Navbar';
 //import googleIcon from './google-icon.png';
 
+
 function SignUp(){
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -21,13 +22,14 @@ function SignUp(){
             return;
         }
 
-        //create new user
-        const newUser = {name, email, password};
+        //create new user object
+        const newUser = {username: name, email, password};
 
+        //sending user data to the backend
         try{
-            const response = await fetch('http://localhost/SignUp.php',{
+            const response = await fetch('http://localhost:3001/signup', {
                 method: 'POST',
-                headers: {'Content-type': 'application.json()'},
+                headers: {'Content-type': 'application/json'},
                 body: JSON.stringify(newUser)
             });
 
@@ -72,7 +74,8 @@ function SignUp(){
             {errorMsg && <p className="error-message">{errorMsg}</p>}
         </form>
 
-        {/* <div className="google-signup">
+        {/* this is for later :
+         <div className="google-signup">
             <img src={googleIcon} alt="Google" width="20" />
             <span>Sign up with Google</span>
         </div> */}

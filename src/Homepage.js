@@ -14,7 +14,6 @@ import list from './iconmonstr-list-lined.svg';
 import reminder from './iconmonstr-note-26.svg';
 //importing other components
 import Navbar from './Navbar.js';
-import SignUpButton from './SignUpButton.js';
 import useWindowWidth from './useWindowWidth.js';
 import useWindowHeight from './useWindowHeight.js';
 

@@ -5,7 +5,7 @@ console.log("Loading database.js");
 const db = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
-  password: 'studybuddy',  // Update with your MySQL password
+  password: 'Studybuddy490!',  // Update with your MySQL password
   database: 'studyBuddyDB'
 });
 
