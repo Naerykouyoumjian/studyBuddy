@@ -5,6 +5,8 @@ import StudentProfile from './StudentProfile';
 import Login from './Login';  // Import your Login component
 import {Route, Routes, useNavigate} from "react-router-dom";
 import NotFound from "./NotFound"
+import ForgotPassword from './ForgotPassword';
+import ResetPassword from './ResetPassword';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -33,12 +35,15 @@ function App() {
 
   return (
     <>
+      {/*Routes for our webpages */}
       <Routes>
         <Route path = "/" element = {<Homepage onSignUpClick={handleShowSignUp} />} />
         {/*<Route path = "/faq" element = {} />*/}
         <Route path = "/signin" element = {<Login onLogin={handleLogin} />} />
         {/*<Route path = "/dashboard" element = {} />*/}
         <Route path = "/signup" element = {<SignUp />} />
+        <Route path = "/forgot-password" element = {<ForgotPassword />} />
+        <Route path = "/reset-password" element = {<ResetPassword />} />
         <Route path = "*" element = {<NotFound />} />
       </Routes>
 
