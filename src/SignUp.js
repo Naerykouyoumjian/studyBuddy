@@ -5,7 +5,9 @@ import Navbar from './Navbar';
 
 
 function SignUp(){
-    const [name, setName] = useState("");
+    //state variables for use input
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,7 +25,7 @@ function SignUp(){
         }
 
         //create new user object
-        const newUser = {username: name, email, password};
+        const newUser = {firstName, lastName, email, password};
 
         //sending user data to the backend
         try{
@@ -39,9 +41,10 @@ function SignUp(){
             if(result.success){
                 alert(result.message);
             }else{
-                setErrorMsg(result.message);
+                setErrorMsg(result.message || 'An error occured.');
             }
         }catch(error){
+                    console.error('Error: ', error);
                     setErrorMsg("Error connecting to the server.");
                 }
             };
@@ -51,8 +54,11 @@ function SignUp(){
         <div className="sign-up-form">
         <h2>Create Account</h2>
         <form onSubmit={handleSubmit}>
-            <label>Full Name</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+            <label>First Name</label>
+            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+            
+            <label>Last Name</label>
+            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
             
             <label>Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
