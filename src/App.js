@@ -6,6 +6,8 @@ import Login from './Login';
 import FAQ from './FAQ';
 import { Route, Routes, useNavigate } from "react-router-dom";
 import NotFound from "./NotFound";
+import ForgotPassword from './ForgotPassword';
+import ResetPassword from './ResetPassword';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -39,6 +41,8 @@ function App() {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/signin" element={<Login onLogin={handleLogin} />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path = "/forgot-password" element = {<ForgotPassword />} />
+        <Route path = "/reset-password" element = {<ResetPassword />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

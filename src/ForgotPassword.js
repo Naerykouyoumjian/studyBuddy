@@ -1,7 +1,6 @@
 //importing libraries
 import React, {useState} from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+
 //importing style sheet
 import './ForgotPassword.css';
 //importing font
@@ -14,26 +13,43 @@ function ForgotPassword(){
     //email setter function
     const [email, setEmail] = useState("");
 
-    //used to navigate directly to one of our webpages using Routes system
-    const navigate = useNavigate();
-
     //function to process the E-mail user input
     const handleEmail = async (e) => {
         e.preventDefault();
         try{
-            //by pass email system to get to reset password page: will be removed later, currrently only in for debugging purposes
-            if(email === "1@1"){
-                //navigates directly to reset password page
-                navigate("/reset-password");
+            //post request to find email in our database
+            const response = await fetch('http://localhost:3001/find-email',{
+                method: "POST",
+                headers: { "Content-Type" : "application/json"},
+                body: JSON.stringify({email: email})
+            });
+
+            //getting results from the find email post request
+            const result = await response.json();
+            //if the email exists in our database
+            if(result.success){
+                //post request to send the reset password email
+                const emailResponse = await fetch("http://localhost:3002/reset-password-email", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({email})
+                });
+
+                //getting results from the post request to send the email
+                const emailResult = await emailResponse.json();
+                //sending appropriate message based on if the email was sent or not
+                if(emailResult.success){
+                    alert(emailResult.message);
+                }else{
+                    alert(emailResult.message);
+                }
+                
             }else{
-                //sending a POST request to our email server (currently set on localhost 3002 will change once we have aws up and running) and awaiting response
-                await axios.post("http://localhost:3002/", {email});
-                //once response has been recived user is notified that the E-mail has been sent
-                alert("Password reset link has been sent to your E-mail.");
+                //email was not found in our database and user is notified
+                alert(result.message)
             }
         } catch(error){
             //In case an error occurs while trying to send the E-mail -> most likely cause is forgetting to start the E-mail server
-            console.error("Error:", error.response || error.message || error);
             alert("Error occured while sending E-mail, please try again")
         }
         

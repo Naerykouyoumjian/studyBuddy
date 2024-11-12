@@ -1,5 +1,5 @@
 //importing libraries
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 //importing style sheet
 import './ResetPassword.css';
@@ -10,24 +10,54 @@ import Navbar from './Navbar.js';
 
 //Function to handel reset password feature
 function ResetPassword(){
-    //setters for new password, confirm password, and error message
+    //setters for new password, confirm password, and token
     const [newPass, setPass] = useState("");
     const [confirmPass, setConfirm] = useState("");
-    const [errMsg, setErrMsg] = useState("");
+    const [token, setToken] = useState("");
     
     //used to navigate directly to one of our webpages using Routes system
     const navigate = useNavigate();
 
+    //useEffect function for setting token from the URL
+    useEffect(() =>{
+        //getting URL of current webpage
+        const params = new URLSearchParams(window.location.search);
+        //parsing token from the URL
+        const token = params.get("token");
+        //setting token 
+        setToken(token);
+    }, []);
+    
     //processes password once both new and confirmation has been input
-    const handleReset = (e) =>{
+    const handleReset = async (e) =>{
         e.preventDefault();
         //checks if new password matched the confrimed password
         if(newPass === confirmPass){
-            //navigates directly to signin page -> will later hash and save to database
-            navigate("/signin");
+           try{
+            //post request to save the new password for the associated user
+            const response = await fetch("http://localhost:3001/save-new-password", {
+                method: "POST",
+                headers: {"Content-Type" : "application/json"},
+                body: JSON.stringify({token, password: newPass})
+            });
+
+            //getting results from save password request
+            const result = await response.json();
+            if(result.success){
+                //password was successfully saved user is notified and redirected to the sign in page
+                alert(result.message);
+                navigate("/signin");
+            }else{
+                //password was not saved and user is notified
+                alert(result.message);
+            }
+           }catch(error){
+            //an error connecting to the server occured and the user is notified
+            alert("Error connecting to the server");
+           }
         }else{
-            //sets error message in case the two passwords don't match
-            setErrMsg(alert("The two passwords don't match, please try again"))
+            //the two passwords don't match and the user is notified
+            alert("The two passwords don't match, please try again");
         }
     }
 
@@ -63,7 +93,6 @@ function ResetPassword(){
                 </div>
 
                 <button className="confirm" type = "submit">Confirm</button>
-                {errMsg && {errMsg}}
             </form>
         </div>
 
@@ -72,3 +101,14 @@ function ResetPassword(){
 }
 
 export default ResetPassword
+
+/*
+add this create statement to database to create reset_tokens table:
+create table reset_tokens(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	email VARCHAR(100) NOT NULL UNIQUE,
+    token VARCHAR(50) NOT NULL UNIQUE,
+    expiration DATETIME NOT NULL,
+    FOREIGN KEY (email) REFERENCES users(email)
+);
+*/
