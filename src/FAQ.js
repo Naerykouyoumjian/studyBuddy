@@ -1,7 +1,7 @@
 import React from 'react';
 import './FAQ.css';
 import questionIcon from './iconmonstr-question-thin-240.png';
-import Navbar from './Navbar'; // Ensure Navbar is imported
+import Navbar from './Navbar';
 
 const FAQ = () => {
     const faqData = [
@@ -25,7 +25,7 @@ const FAQ = () => {
 
     return (
         <>
-            <Navbar /> {/* Ensure Navbar is included here */}
+            <Navbar isSignedIn={false} />
             <div className="faq-container">
                 <h1 className="faq-header">Frequently Asked Questions</h1>
                 {faqData.map((item, index) => (
