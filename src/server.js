@@ -193,7 +193,8 @@ app.listen(PORT, error => {
 You should write this in the Mysql workbench to work
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
+    firstName VARCHAR(50) NOT NULL,
+    lasttName VARCHAR(50) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -210,3 +211,27 @@ create table reset_tokens(
     FOREIGN KEY (email) REFERENCES users(email)
 );
 */
+// Login route
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+
+  const query = 'SELECT * FROM users WHERE email = ?';
+  db.query(query, [email], async (err, results) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: 'Server error' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: 'Email not found' });
+    }
+
+    const user = results[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Invalid password' });
+    }
+
+    return res.status(200).json({ success: true, message: 'Login successful' });
+  });
+});
