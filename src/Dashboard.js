@@ -1,8 +1,10 @@
 import React from "react";
 import "./Dashboard.css"; 
 import Navbar from "./Navbar"; 
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   return (
     <>
       <Navbar isSignedIn={true} /> 
@@ -25,7 +27,7 @@ const Dashboard = () => {
             <div className="icon">&#128462;</div>
             <div className="label">View To-Do Lists</div>
           </div>
-          <div className="card" onClick={() => alert("User Account")}>
+          <div className="card" onClick={() => navigate("/user-account")}>
             <div className="icon">&#128100;</div>
             <div className="label">User Account</div>
           </div>

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import Homepage from './Homepage';
 import SignUp from './SignUp';
-import StudentProfile from './StudentProfile';
+import UserAccount from './UserAccount';
 import Login from './Login';
 import FAQ from './FAQ';
 import { Route, Routes, useNavigate } from "react-router-dom";
 import NotFound from "./NotFound";
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
+import Dashboard from './Dashboard';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,10 +44,11 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path = "/forgot-password" element = {<ForgotPassword />} />
         <Route path = "/reset-password" element = {<ResetPassword />} />
+        <Route path = "/user-account" element = {<UserAccount />} /> 
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {isAuthenticated && <StudentProfile />}
     </>
   );
 }
