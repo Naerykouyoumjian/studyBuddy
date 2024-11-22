@@ -4,9 +4,9 @@ import "./UserAccount.css";
 
 function UserAccount() {
     //Declare state variables
-    const [firstName, setFirstName] = useState("Baba");
-    const [lastName, setLastName] = useState("Tunde");
-    const [email, setEmail] = useState("babatunde@thepycs.com");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
