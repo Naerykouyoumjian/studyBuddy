@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import "./UserAccount.css";
 
@@ -11,6 +11,54 @@ function UserAccount() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [notificationEnabled, setNotificationEnabled] = useState(false);
+
+    // Load user data from localStorage
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+            try {
+                const userData = JSON.parse(storedUser);
+                setFirstName(userData.firstName || "");
+                setLastName(userData.lastName || "");
+                setEmail(userData.email || "");
+            } catch (error) {
+                console.error("Error parsing user data from localStorage:", error);
+            }
+        } else {
+            console.error("No valid user data found in localStorage.");
+        }
+    }, []);
+
+    const handleSaveChanges = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/update-user', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    firstName,
+                    lastName,
+                    currentPassword,
+                    newPassword
+                })
+            });
+    
+            const result = await response.json();
+            if (result.success) {
+                console.log('User updated successfully');
+                // Update localStorage with new user details
+                localStorage.setItem('user', JSON.stringify({ firstName, lastName, email }));
+                alert('User information updated successfully!');
+            } else {
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error('Error updating user:', error);
+            alert('An error occurred while updating user information.');
+        }
+    };
+    
+    
 
     return (
         <div className='user-account-container'>
@@ -96,7 +144,7 @@ function UserAccount() {
 
                     {/*button style*/}
                     <div className='buttons-container'>
-                        <button type='button' className='save-button'>Save Changes</button>
+                        <button type='button' className='save-button' onClick={handleSaveChanges}>Save Changes</button>
                         <button type='button' className='delete-button'>Delete Profile</button>
                     </div>
             </main>

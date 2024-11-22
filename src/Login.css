@@ -47,9 +47,16 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     width: 90%;
+    box-sizing: border-box;
   }
-
-  
+  .input-box {
+    width: 100%;  /* Override general input width to make it fill the container */
+    margin-bottom: 10px;  /* Add space between inputs */
+}
+.readonly-input {
+  background-color: #f8f8f8; /* Gray background for readonly inputs */
+  cursor: not-allowed; /* Cursor indicating input is not editable */
+}
   .login-button {
     padding: 10px;
     font-size: 18px;
