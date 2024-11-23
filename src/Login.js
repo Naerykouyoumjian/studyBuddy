@@ -11,42 +11,34 @@ const Login = ({ onLogin }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate(); // Add navigation hook
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-
-
-  //   // Check if the entered email and password match the test account
-  //   if (email === 'test@example.com' && password === 'password123') {
-  //     console.log("Login successful");
-  //     setErrorMessage('');
-  //     onLogin();  // Simulate successful login
-  //     navigate('/dashboard');
-  //   } else {
-  //     setErrorMessage('Invalid email or password');  // Show an error message
-  //   }
-  // };
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3001/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const result = await response.json();
-      if (result.success) {
-        console.log('Login successful');
-        setErrorMessage('');
-        onLogin();  // Simulate successful login
-        navigate('/dashboard');  // Redirect to dashboard
-      } else {
-        setErrorMessage(result.message);
-      }
+        const response = await fetch('http://localhost:3001/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const result = await response.json();
+        console.log("Login Response:", result); // Check what data is received
+
+        if (result.success) {
+            console.log('Login successful');
+            setErrorMessage('');
+
+            // Store user data in localStorage
+            localStorage.setItem('user', JSON.stringify(result.user));
+            console.log("User Data Stored:", localStorage.getItem('user')); // Verify stored value
+
+            onLogin();  // Simulate successful login
+            navigate('/dashboard');  // Redirect to dashboard
+        } else {
+            setErrorMessage(result.message);
+        }
     } catch (error) {
-      setErrorMessage('An error occurred. Please try again.');
+        setErrorMessage('An error occurred. Please try again.');
     }
-  };
-  
+};
 
   return (
     <>

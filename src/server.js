@@ -212,6 +212,29 @@ create table reset_tokens(
 );
 */
 // Login route
+// app.post('/login', (req, res) => {
+//   const { email, password } = req.body;
+
+//   const query = 'SELECT * FROM users WHERE email = ?';
+//   db.query(query, [email], async (err, results) => {
+//     if (err) {
+//       return res.status(500).json({ success: false, message: 'Server error' });
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).json({ success: false, message: 'Email not found' });
+//     }
+
+//     const user = results[0];
+//     const isMatch = await bcrypt.compare(password, user.password);
+    
+//     if (!isMatch) {
+//       return res.status(400).json({ success: false, message: 'Invalid password' });
+//     }
+
+//     return res.status(200).json({ success: true, message: 'Login successful' });
+//   });
+// });
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -227,11 +250,69 @@ app.post('/login', (req, res) => {
 
     const user = results[0];
     const isMatch = await bcrypt.compare(password, user.password);
-    
+
     if (!isMatch) {
       return res.status(400).json({ success: false, message: 'Invalid password' });
     }
 
-    return res.status(200).json({ success: true, message: 'Login successful' });
+    // Send user information to the frontend
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      }
+    });
   });
 });
+
+// Update user info route
+app.put('/update-user', (req, res) => {
+  const { email, firstName, lastName, currentPassword, newPassword } = req.body;
+
+  const query = 'SELECT * FROM users WHERE email = ?';
+  db.query(query, [email], async (err, results) => {
+      if (err) {
+          return res.status(500).json({ success: false, message: 'Server error' });
+      }
+
+      if (results.length === 0) {
+          return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      const user = results[0];
+
+      // If password is to be changed, check current password
+      if (currentPassword && newPassword) {
+          const isMatch = await bcrypt.compare(currentPassword, user.password);
+          if (!isMatch) {
+              return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+          }
+
+          // Hash the new password
+          const saltRounds = 10;
+          const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+          // Update user with new password
+          const updateQuery = 'UPDATE users SET firstName = ?, lastName = ?, password = ? WHERE email = ?';
+          db.query(updateQuery, [firstName, lastName, hashedPassword, email], (updateErr) => {
+              if (updateErr) {
+                  return res.status(500).json({ success: false, message: 'Failed to update user' });
+              }
+              return res.status(200).json({ success: true, message: 'User updated successfully' });
+          });
+      } else {
+          // Update user without changing the password
+          const updateQuery = 'UPDATE users SET firstName = ?, lastName = ? WHERE email = ?';
+          db.query(updateQuery, [firstName, lastName, email], (updateErr) => {
+              if (updateErr) {
+                  return res.status(500).json({ success: false, message: 'Failed to update user' });
+              }
+              return res.status(200).json({ success: true, message: 'User updated successfully' });
+          });
+      }
+  });
+});
+
