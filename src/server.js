@@ -57,7 +57,7 @@ db.query(checkQuery, [email], async (checkError, checkResult) =>{
   console.log('Password hashed successfully.');
 
   //save the user with hashed password
-  const query = 'INSERT INTO users (firstName, lastName, email, password) Values (?, ?, ?, ?)';
+  const query = 'INSERT INTO users (first_Name, last_Name, email, password_hash) Values (?, ?, ?, ?)';
   db.query(query, [firstName, lastName, email, hashedPassword], (error, result) => {
     if(error){
       console.error('Error saving user to database:' , error);
@@ -249,8 +249,16 @@ app.post('/login', (req, res) => {
     }
 
     const user = results[0];
-    const isMatch = await bcrypt.compare(password, user.password);
+    console.log("Password provided by user:", password);
+    console.log("Hashed password from database:", user.password_hash);
 
+    if (!user.password_hash) {
+      console.error("Password hash is missing for the user");
+      return res.status(500).json({ success: false, message: 'Password hash is missing in database' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    
     if (!isMatch) {
       return res.status(400).json({ success: false, message: 'Invalid password' });
     }
