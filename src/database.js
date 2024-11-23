@@ -3,10 +3,10 @@ const mysql = require('mysql2');
 console.log("Loading database.js");
 
 const db = mysql.createConnection({
-  host: '127.0.0.1',
-  user: 'root',
-  password: 'Studybuddy490!',  // Update with your MySQL password
-  database: 'studyBuddyDB'
+  host: 'studybuddydb.cvkowgakit8s.us-east-2.rds.amazonaws.com',
+  user: 'admin',
+  password: 'Studybuddy490!',
+  database: 'studybuddydb'
 });
 
 db.connect((error) => {
