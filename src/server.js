@@ -1,3 +1,5 @@
+const AWS = require('aws-sdk');
+const ssm = new AWS.SSM({region: 'us-east-2'}); //aws region
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -9,6 +11,25 @@ const PORT = 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
+
+async function getPublicIP(){
+  const params = {
+    name: 'StudyBuddyPublicIP',
+    WithDecryptiom: false,
+  };
+
+  try {
+    const data = await ssm.getParameter(params).promise();
+    return data.Parameter.Value; //return the stored IP
+  } catch (err){
+    console.error('Error fetching IP from Parameter Store: ' , err);
+    process.exit(1);
+  }
+}
+
+getPublicIP().then(ip => {
+  console.log('Fetched Public IP: ${ip}');
+});
 
 //default route to check the server status
 app.get('/', (req, res) => {
