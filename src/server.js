@@ -28,7 +28,7 @@ async function getPublicIP(){
 }
 
 getPublicIP().then(ip => {
-  console.log('Fetched Public IP: ${ip}');
+  console.log("Fetched Public IP:", ip);
 });
 
 //default route to check the server status
