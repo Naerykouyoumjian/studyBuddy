@@ -14,8 +14,8 @@ app.use(bodyParser.json());
 
 async function getPublicIP(){
   const params = {
-    name: 'StudyBuddyPublicIP',
-    WithDecryptiom: false,
+    Name: 'StudyBuddyPublicIP',
+    WithDecryption: false
   };
 
   try {
