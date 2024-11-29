@@ -14,8 +14,8 @@ app.use(bodyParser.json());
 
 async function getPublicIP(){
   const params = {
-    name: 'StudyBuddyPublicIP',
-    WithDecryptiom: false,
+    Name: 'StudyBuddyPublicIP',
+    WithDecryption: false
   };
 
   try {
@@ -28,7 +28,7 @@ async function getPublicIP(){
 }
 
 getPublicIP().then(ip => {
-  console.log('Fetched Public IP: ${ip}');
+  console.log("Fetched Public IP:", ip);
 });
 
 //default route to check the server status
