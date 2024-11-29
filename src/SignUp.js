@@ -29,7 +29,7 @@ function SignUp(){
 
         //sending user data to the backend
         try{
-            const response = await fetch('http://localhost:3001/signup', {
+            const response = await fetch('http://3.137.174.22:3001/signup', {
                 method: 'POST',
                 headers: {'Content-type': 'application/json'},
                 body: JSON.stringify(newUser)

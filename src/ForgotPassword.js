@@ -18,7 +18,7 @@ function ForgotPassword(){
         e.preventDefault();
         try{
             //post request to find email in our database
-            const response = await fetch('http://localhost:3001/find-email',{
+            const response = await fetch('http://3.137.174.22:3001/find-email',{
                 method: "POST",
                 headers: { "Content-Type" : "application/json"},
                 body: JSON.stringify({email: email})
@@ -29,7 +29,7 @@ function ForgotPassword(){
             //if the email exists in our database
             if(result.success){
                 //post request to send the reset password email
-                const emailResponse = await fetch("http://localhost:3002/reset-password-email", {
+                const emailResponse = await fetch("http://3.137.174.22:3002/reset-password-email", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({email})
