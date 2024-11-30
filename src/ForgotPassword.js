@@ -21,7 +21,7 @@ function ForgotPassword(){
             const backednURL = process.env.REACT_APP_BACKEND_URL;
             const emailServerURL = process.env.REACT_APP_EMAIL_SERVER_URL;
 
-            const response = await fetch('${backendURL}/find-email',{
+            const response = await fetch(`${backendURL}/find-email`,{
                 method: "POST",
                 headers: { "Content-Type" : "application/json"},
                 body: JSON.stringify({email: email})
@@ -32,7 +32,7 @@ function ForgotPassword(){
             //if the email exists in our database
             if(result.success){
                 //post request to send the reset password email
-                const emailResponse = await fetch("${emailServerURL}/reset-password-email", {
+                const emailResponse = await fetch(`${emailServerURL}/reset-password-email`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({email})

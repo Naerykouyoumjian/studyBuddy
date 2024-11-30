@@ -30,7 +30,7 @@ function SignUp(){
         //sending user data to the backend
         try{
             const backendURL = process.env.REACT_APP_BACKEND_URL;
-            const response = await fetch('${backendURL/signup', {
+            const response = await fetch(`${backendURL}/signup`, {
                 method: 'POST',
                 headers: {'Content-type': 'application/json'},
                 body: JSON.stringify(newUser)
