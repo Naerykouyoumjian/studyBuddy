@@ -14,7 +14,8 @@ const Login = ({ onLogin }) => {
 const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        const response = await fetch('http://3.137.174.22:3001/login', {
+      const backendURL = process.env.REACT_APP_BACKEND_URL;
+        const response = await fetch('${backendURL}/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })

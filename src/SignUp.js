@@ -29,7 +29,8 @@ function SignUp(){
 
         //sending user data to the backend
         try{
-            const response = await fetch('http://3.137.174.22:3001/signup', {
+            const backendURL = process.env.REACT_APP_BACKEND_URL;
+            const response = await fetch('${backendURL/signup', {
                 method: 'POST',
                 headers: {'Content-type': 'application/json'},
                 body: JSON.stringify(newUser)

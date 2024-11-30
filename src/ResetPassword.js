@@ -35,7 +35,7 @@ function ResetPassword(){
         if(newPass === confirmPass){
            try{
             //post request to save the new password for the associated user
-            const response = await fetch("http://3.137.174.22:3001/save-new-password", {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/save-new-password`, {
                 method: "POST",
                 headers: {"Content-Type" : "application/json"},
                 body: JSON.stringify({token, password: newPass})
