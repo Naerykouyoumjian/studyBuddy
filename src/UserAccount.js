@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import "./UserAccount.css";
+import { useNavigate } from 'react-router-dom';
 
 function UserAccount() {
     //Declare state variables
@@ -11,6 +12,9 @@ function UserAccount() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [notificationEnabled, setNotificationEnabled] = useState(false);
+    const navigate = useNavigate();
+
+    const backendURL = process.env.REACT_APP_BACKEND_URL;
 
     // Load user data from localStorage
     useEffect(() => {
@@ -31,7 +35,7 @@ function UserAccount() {
 
     const handleSaveChanges = async () => {
         try {
-            const response = await fetch('http://localhost:3001/update-user', {
+            const response = await fetch(`${backendURL}/update-user`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -57,12 +61,41 @@ function UserAccount() {
             alert('An error occurred while updating user information.');
         }
     };
+    const handleDeleteUser = async () => {
+        try{
+            
+            if(window.confirm("Press Ok if you are sure you want to delete your profile.\nThis action is permanent and cannot be reversed.")){
+                const response = await fetch(`${backendURL}/delete-user`,{
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email
+                    })
+                });
+
+                const result = await response.json();
+                if(result.success){
+                    console.log("User: " + email + " was deleted successfully");
+                    alert(result.message);
+                    localStorage.removeItem('user');
+                    navigate('/');
+                }else{
+                    alert(result.message);
+                }
+            }
+        }catch (error){
+            console.error("Error deleting user:", error);
+            alert("An error occurred while attempting to delete your user profile, please try again later.");
+        }
+        
+    };
     
     
 
     return (
+        <>
+        <Navbar isSignedIn={true} />
         <div className='user-account-container'>
-            <Navbar isSignedIn={true} />
             <main className='user-account-content'>
             <h2 className= "section-title"> User Account</h2>
 
@@ -145,10 +178,11 @@ function UserAccount() {
                     {/*button style*/}
                     <div className='buttons-container'>
                         <button type='button' className='save-button' onClick={handleSaveChanges}>Save Changes</button>
-                        <button type='button' className='delete-button'>Delete Profile</button>
+                        <button type='button' className='delete-button' onClick={handleDeleteUser}>Delete Profile</button>
                     </div>
             </main>
         </div>
+        </>
     );
 }
 
