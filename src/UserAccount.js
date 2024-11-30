@@ -14,7 +14,6 @@ function UserAccount() {
     const [notificationEnabled, setNotificationEnabled] = useState(false);
     const navigate = useNavigate();
 
-    const backendURL = process.env.REACT_APP_BACKEND_URL;
 
     // Load user data from localStorage
     useEffect(() => {
@@ -35,6 +34,8 @@ function UserAccount() {
 
     const handleSaveChanges = async () => {
         try {
+            const backendURL = process.env.REACT_APP_BACKEND_URL;
+            console.log("Backend URL: ", backendURL);
             const response = await fetch(`${backendURL}/update-user`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -65,6 +66,8 @@ function UserAccount() {
         try{
             
             if(window.confirm("Press Ok if you are sure you want to delete your profile.\nThis action is permanent and cannot be reversed.")){
+                const backendURL = process.env.REACT_APP_BACKEND_URL;
+                console.log("Backend URL: ", backendURL);
                 const response = await fetch(`${backendURL}/delete-user`,{
                     method: 'DELETE',
                     headers: {'Content-Type': 'application/json' },
