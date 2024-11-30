@@ -324,3 +324,22 @@ app.put('/update-user', (req, res) => {
   });
 });
 
+app.delete('/delete-user', (req, res) =>{
+  const {email} = req.body;
+  console.log('Email: ', email);
+  const query = 'DELETE FROM users WHERE email = ?';
+
+  db.query(query, [email], (err, result) =>{
+      if(err){
+        console.error('Error executing the delete query: ', err);
+        res.status(500).json({success: false, message: 'Failed to delete user profile, please try again later'});
+        return;
+      }
+      if(result.affectedRows === 0){
+        console.error('Delete cannot be performed: The user could not be found in the database')
+        res.status(404).json({success: false, message: 'The email could not be located in our database'});
+      }else{
+        res.status(200).json({success: true, message: 'The user profile associated with email: ' + email + ' has been deleted'});
+      }
+  });
+});
