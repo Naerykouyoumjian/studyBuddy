@@ -15,6 +15,7 @@ const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const backendURL = process.env.REACT_APP_BACKEND_URL;
+      console.log("Backend URL: ", backendURL);
         const response = await fetch(`${backendURL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -32,11 +33,14 @@ const handleSubmit = async (e) => {
             console.log("User Data Stored:", localStorage.getItem('user')); // Verify stored value
 
             onLogin();  // Simulate successful login
+            console.log("Navigating to dashboard...");
             navigate('/dashboard');  // Redirect to dashboard
         } else {
+          console.log("Login failed:", result.message);
             setErrorMessage(result.message);
         }
     } catch (error) {
+      console.error("Login Error: :", error);
         setErrorMessage('An error occurred. Please try again.');
     }
 };
