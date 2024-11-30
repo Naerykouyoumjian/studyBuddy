@@ -18,7 +18,7 @@ function ForgotPassword(){
         e.preventDefault();
         try{
             //post request to find email in our database
-            const backednURL = process.env.REACT_APP_BACKEND_URL;
+            const backendURL = process.env.REACT_APP_BACKEND_URL;
             const emailServerURL = process.env.REACT_APP_EMAIL_SERVER_URL;
 
             const response = await fetch(`${backendURL}/find-email`,{
