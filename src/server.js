@@ -163,7 +163,7 @@ app.post('/save-new-password', (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     //updating user table with the new password for the correct user
-    const updateQuery = 'UPDATE users SET password = ? WHERE email = ?'
+    const updateQuery = 'UPDATE users SET password_hash = ? WHERE email = ?'
     db.query(updateQuery, [hashedPassword, email], (updateErr, updateResults) =>{
       if(updateErr){
         //there was an error connecting to the database
@@ -268,8 +268,8 @@ app.post('/login', (req, res) => {
       success: true,
       message: 'Login successful',
       user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.first_name,
+        lastName: user.last_name,
         email: user.email,
       }
     });
@@ -304,7 +304,7 @@ app.put('/update-user', (req, res) => {
           const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
           // Update user with new password
-          const updateQuery = 'UPDATE users SET firstName = ?, lastName = ?, password = ? WHERE email = ?';
+          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, password_hash = ? WHERE email = ?';
           db.query(updateQuery, [firstName, lastName, hashedPassword, email], (updateErr) => {
               if (updateErr) {
                   return res.status(500).json({ success: false, message: 'Failed to update user' });
@@ -313,7 +313,7 @@ app.put('/update-user', (req, res) => {
           });
       } else {
           // Update user without changing the password
-          const updateQuery = 'UPDATE users SET firstName = ?, lastName = ? WHERE email = ?';
+          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ? WHERE email = ?';
           db.query(updateQuery, [firstName, lastName, email], (updateErr) => {
               if (updateErr) {
                   return res.status(500).json({ success: false, message: 'Failed to update user' });
