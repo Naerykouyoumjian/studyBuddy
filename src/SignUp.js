@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import './SignUp.css';
 import Navbar from './Navbar';
+import { useNavigate } from "react-router-dom";
 //import googleIcon from './google-icon.png';
 
 
@@ -12,6 +13,7 @@ function SignUp(){
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
+    const navigate = useNavigate();
 
 
     //handle submission
@@ -40,6 +42,7 @@ function SignUp(){
             //check backend response
             if(result.success){
                 alert(result.message);
+                navigate("/signin");
             }else{
                 setErrorMsg(result.message || 'An error occured.');
             }
