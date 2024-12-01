@@ -295,8 +295,8 @@ app.post('/login', (req, res) => {
       success: true,
       message: 'Login successful',
       user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.first_name,
+        lastName: user.last_name,
         email: user.email,
       }
     });
