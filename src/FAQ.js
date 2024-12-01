@@ -25,7 +25,7 @@ const FAQ = () => {
 
     return (
         <>
-            <Navbar isSignedIn={false} />
+            <Navbar/>
             <div className="faq-container">
                 <h1 className="faq-header">Frequently Asked Questions</h1>
                 {faqData.map((item, index) => (

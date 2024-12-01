@@ -7,7 +7,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   return (
     <>
-      <Navbar isSignedIn={true} /> 
+      <Navbar/> 
       <div className="dashboard">
         <h1>User Dashboard</h1> 
         <div className="dashboard-content">

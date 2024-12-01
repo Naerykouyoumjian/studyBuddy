@@ -3,10 +3,27 @@ import './Navbar.css';
 //importing fonts
 import '@fontsource/new-rocker';
 import '@fontsource/palanquin';
+import React from 'react'
 import { Link } from "react-router-dom"
+import { useEffect, useState } from 'react';
 
 //adding Navbar elements
-const Navbar = ({isSignedIn}) =>{
+const Navbar = () =>{
+    const [signinStatus, setSigninStatus] = useState(false);
+  
+    const handleSignOut = () =>{
+      localStorage.removeItem('user');
+      //setSigninStatus(false);
+    };
+
+    useEffect(() => {
+      if(localStorage.getItem("user") === null){
+        setSigninStatus(false);
+      }else{
+        setSigninStatus(true);
+      }
+    });
+
     return(<>
     <nav className = "navbar">
         <div className = "navbar-left">
@@ -19,12 +36,12 @@ const Navbar = ({isSignedIn}) =>{
             {/*Check if user is signed in, when true show options 
               for the signed in navbar. When false show main navbar
             */}
-            {isSignedIn ? ( 
+            {signinStatus ? ( 
               <>
                 <li><Link to ="/">Home</Link></li>
                 <li><Link to ="/dashboard">Dashboard</Link></li>
                 <li><Link to ="/faq">FAQ</Link></li>
-                <li className = "signOut"><Link to ="/">Sign-Out</Link></li>
+                <li className = "signOut"><Link to ="/" onClick = {handleSignOut}>Sign-Out</Link></li>
               </>
             ) : (
               <>
