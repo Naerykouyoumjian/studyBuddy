@@ -59,7 +59,7 @@ emailServer.post("/reset-password-email", async (req, res) => {
                 from: "studybuddy4902024@gmail.com",
                 to: email,
                 subject: "Password Reset",
-                text: `You requested a password reset. Click this link to reset your password: http://3.137.174.22:3000/reset-password?token=${token}`
+                text: `You requested a password reset. Click this link to reset your password: http://3.15.237.83:3000/reset-password?token=${token}`
             }
 
             //Function to send E-mail

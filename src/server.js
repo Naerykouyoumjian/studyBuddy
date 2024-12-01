@@ -184,7 +184,7 @@ app.post('/save-new-password', (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     //updating user table with the new password for the correct user
-    const updateQuery = 'UPDATE users SET password = ? WHERE email = ?'
+    const updateQuery = 'UPDATE users SET password_hash = ? WHERE email = ?'
     db.query(updateQuery, [hashedPassword, email], (updateErr, updateResults) =>{
       if(updateErr){
         //there was an error connecting to the database
@@ -207,7 +207,7 @@ app.post('/save-new-password', (req, res) => {
 
 app.listen(PORT, error => {
   if (error) return console.error("Server failed to start:", error);
-  console.log(`Server is running on http://3.137.174.22:${PORT}`);
+  console.log(`Server is running on http://3.15.237.83:${PORT}`);
 });
 
 /*
@@ -321,7 +321,7 @@ app.put('/update-user', (req, res) => {
 
       // If password is to be changed, check current password
       if (currentPassword && newPassword) {
-          const isMatch = await bcrypt.compare(currentPassword, user.password);
+          const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
           if (!isMatch) {
               return res.status(400).json({ success: false, message: 'Current password is incorrect' });
           }
@@ -331,7 +331,7 @@ app.put('/update-user', (req, res) => {
           const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
           // Update user with new password
-          const updateQuery = 'UPDATE users SET firstName = ?, lastName = ?, password = ? WHERE email = ?';
+          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, password_hash = ? WHERE email = ?';
           db.query(updateQuery, [firstName, lastName, hashedPassword, email], (updateErr) => {
               if (updateErr) {
                   return res.status(500).json({ success: false, message: 'Failed to update user' });
@@ -340,7 +340,7 @@ app.put('/update-user', (req, res) => {
           });
       } else {
           // Update user without changing the password
-          const updateQuery = 'UPDATE users SET firstName = ?, lastName = ? WHERE email = ?';
+          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ? WHERE email = ?';
           db.query(updateQuery, [firstName, lastName, email], (updateErr) => {
               if (updateErr) {
                   return res.status(500).json({ success: false, message: 'Failed to update user' });
