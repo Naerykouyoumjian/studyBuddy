@@ -13,6 +13,8 @@ emailServer.use(cors());
 //allows for parsing of JSON request into javascript request
 emailServer.use(express.json());
 
+const fetch = require('node-fetch');
+
 //Nodemailer transporter allows for contact with our Gmail account 
 const transporter = nodemailer.createTransport({
     service: "gmail",
