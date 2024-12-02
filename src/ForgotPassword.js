@@ -49,11 +49,12 @@ function ForgotPassword(){
                 
             }else{
                 //email was not found in our database and user is notified
-                alert(result.message)
+                alert(result.message);
             }
         } catch(error){
             //In case an error occurs while trying to send the E-mail -> most likely cause is forgetting to start the E-mail server
-            alert("Error occured while sending E-mail, please try again")
+            console.error("handle email error: ", error);
+            alert("Error occured while sending E-mail, please try again");
         }
         
     };
