@@ -97,7 +97,7 @@ function UserAccount() {
 
     return (
         <>
-        <Navbar isSignedIn={true} />
+        <Navbar/>
         <div className='user-account-container'>
             <main className='user-account-content'>
             <h2 className= "section-title"> User Account</h2>

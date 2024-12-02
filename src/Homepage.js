@@ -27,7 +27,7 @@ function Homepage({onSignUpClick}){
         {/* takes boolean to varify sign in status.
             currently takes manual input, but will eventually
             recieve a variable to confirm users sign in status */}
-        <Navbar isSignedIn = {false} />
+        <Navbar/>
 
         <div className = "homepage-imgbox">
             <img className = "hp-image" 

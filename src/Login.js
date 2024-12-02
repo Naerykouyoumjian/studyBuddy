@@ -47,7 +47,7 @@ const handleSubmit = async (e) => {
 
   return (
     <>
-      <Navbar isSignedIn={false} />
+      <Navbar/>
       <div className="login-page">
         <div className="login-container">
           <h2>Welcome back</h2>

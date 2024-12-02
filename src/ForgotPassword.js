@@ -60,7 +60,7 @@ function ForgotPassword(){
 
     //returning webpage elements
     return (<>
-        <Navbar isSignedIn = {false} />   
+        <Navbar/>   
         <div>
             <form onSubmit = {handleEmail} className = "user-email">
                 <h1> Trouble Signing In?</h1>

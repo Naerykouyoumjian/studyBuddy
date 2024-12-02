@@ -63,7 +63,7 @@ function ResetPassword(){
 
     //returns elements for reset password page
     return(<>
-        <Navbar isSignedIn = {false} />
+        <Navbar/>
         <div>
             <form onSubmit = {handleReset} className = "password-change">
                 <div className="new-password">
