@@ -3,6 +3,6 @@ import Navbar from "./Navbar";
 export default function DB(){
     return <>
         <Navbar/>
-        <h1>404 Page Not Found</h1>
+        <h1 style={{ textAlign: "center"}}>404 - Page Not Found</h1>
     </>
 }
