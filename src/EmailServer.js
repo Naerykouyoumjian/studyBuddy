@@ -44,7 +44,7 @@ emailServer.post("/reset-password-email", async (req, res) => {
     const userInfo = {email, token, formattedExp};
     try{
         //post request to save the created token to our reset_tokens table
-        const backednURL = process.env.REACT_APP_BACKEND_URL;
+        const backendURL = process.env.REACT_APP_BACKEND_URL;
         const response = await fetch(`${backendURL}/save-token`,{
             method: "POST",
             headers: {"Content-Type" : "application/json"},
