@@ -78,10 +78,13 @@ const handleSubmit = async (e) => {
           <div className="additional-options">
             <Link to="/signup">Don't have an account? Register here</Link>
             <Link to="/forgot-password">Forgot your password?</Link>
+
+            {/*
             <button className="google-login-button">
               <img src={googleIcon} alt="Google icon" />
               Sign in with Google
-            </button>          
+            </button>
+            */}          
             </div>
         </div>
       </div>

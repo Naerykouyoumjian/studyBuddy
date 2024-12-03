@@ -73,12 +73,14 @@ function SignUp(){
             <label>Confirm Password</label>
             <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
             
+            {/*
             <div className="checkbox-container">
                 <input type="checkbox" id="termsCheckbox" required />
                 <label htmlFor="termsCheckbox">
                     I agree to the <a href="/terms">Terms & Conditions</a>
                 </label>
             </div>
+            */}
 
             <button type="submit">Sign Up</button>
             {errorMsg && <p className="error-message">{errorMsg}</p>}
