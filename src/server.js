@@ -5,12 +5,65 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const db = require('./database');
 const bcrypt = require('bcrypt');
+const { Configuration, OpenAIApi } = require('openai');
 
 const app = express();
 const PORT = 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
+
+//Configuration for OpenAI API
+const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+
+console.log("Configuration created:", configuration); //debug
+
+const openai = new OpenAIApi(configuration);
+
+console.log("OpenAIApi instance created:", openai); //debug
+
+//route to generate srudy plan
+app.post('/generate-plan', async (req, res) => {
+    const { subjects, priorities, timeSlots, startDate, endDate } = req.body;
+
+    try {
+        //prompt for ChatGPT
+        const prompt = `You are a study plan assistant. Generate a weekly study schedule for the following inputs:\n\n` +
+            `Subjects and priorities: ${JSON.stringify(subjects.map((sub, idx) => ({ subject: sub, priority: priorities[idx] })))}\n` +
+            `Available time slots: ${JSON.stringify(timeSlots)}\n` +
+            `Start date: ${startDate}, End date: ${endDate}.\n\n` +
+            `Create an organized study plan.`;
+
+        //send the prompt to the OpenAI
+        const completion = await openai.createCompletion({
+            model: 'gpt-3.5-turbo',
+            prompt: prompt,
+            max_tokens: 1000,
+        });
+
+        if (!completion || !completion.data.choices || !completion.data.choices[0]) {
+            return res.status(500).json({ success: false, message: 'Failed to generate a valid response from the AI.' });
+        }
+
+        const studyPlan = completion.data.choices[0].text;
+
+        //send the generated plan back to the frontend.
+        res.status(200).json({ success: true, studyPlan });
+    } catch (error) {
+        console.error('Error generatng study plan:', error);
+        res.status(500).json({ success: false, message: 'Failed to generate study plan.' });
+    }
+});
+
+//setup a server
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+
+
 
 async function getPublicIP(){
   const params = {
