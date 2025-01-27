@@ -42,7 +42,7 @@ try{
 const checkQuery = 'SELECT * FROM users WHERE email = ?';
 db.query(checkQuery, [email], async (checkError, checkResult) =>{
   if (checkError){
-    console .error('Database error during email check:' , checkError);
+    console.error('Database error during email check:' , checkError);
     return res.status(500).json({success: false, message: 'Database error during email check.'});
   }
   if (checkResult.length > 0){
