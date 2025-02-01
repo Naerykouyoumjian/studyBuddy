@@ -1,4 +1,6 @@
 require('dotenv').config();
+const AWS = require('aws-sdk');
+const ssm = new AWS.SSM({region: 'us-east-2'}); //aws region
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -6,8 +8,6 @@ const db = require('./database');
 const bcrypt = require('bcrypt');
 const { OpenAI } = require('openai');
 
-const AWS = require('aws-sdk');
-const ssm = new AWS.SSM({ region: 'us-east-2' });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -89,6 +89,7 @@ getPublicIP().then(ip => {
 });
 
 
+
 //default route to check the server status
 app.get('/', (req, res) => {
   res.send('Server is up and running!');
@@ -118,7 +119,7 @@ try{
   }
 
   // check if email already exists
-const checkQuery = 'SELECT * FROM users WHERE email = ?';
+    const checkQuery = 'SELECT * FROM users WHERE email = ?';
 db.query(checkQuery, [email], async (checkError, checkResult) =>{
   if (checkError){
     console.error('Database error during email check:' , checkError);
@@ -263,6 +264,7 @@ app.post('/save-new-password', (req, res) => {
 });
 
 
+
 /*
 You should write this in the Mysql workbench to work
 CREATE TABLE users (
@@ -309,20 +311,27 @@ create table reset_tokens(
 //     return res.status(200).json({ success: true, message: 'Login successful' });
 //   });
 // });
+
+
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
+
+  console.log("Incoming Login Request:", email, password);
 
   const query = 'SELECT * FROM users WHERE email = ?';
   db.query(query, [email], async (err, results) => {
     if (err) {
+      console.error("Database Error:", err);
       return res.status(500).json({ success: false, message: 'Server error' });
     }
 
     if (results.length === 0) {
+      console.log("Email not found:", email);
       return res.status(404).json({ success: false, message: 'Email not found' });
     }
 
     const user = results[0];
+    console.log("User Found:", user);
     console.log("Password provided by user:", password);
     console.log("Hashed password from database:", user.password_hash);
 
@@ -332,6 +341,7 @@ app.post('/login', (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
+    console.log("Password Match:", isMatch);
     
     if (!isMatch) {
       return res.status(400).json({ success: false, message: 'Invalid password' });
@@ -368,7 +378,7 @@ app.put('/update-user', (req, res) => {
 
       // If password is to be changed, check current password
       if (currentPassword && newPassword) {
-          const isMatch = await bcrypt.compare(currentPassword, user.password);
+          const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
           if (!isMatch) {
               return res.status(400).json({ success: false, message: 'Current password is incorrect' });
           }

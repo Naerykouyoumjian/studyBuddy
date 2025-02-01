@@ -14,6 +14,7 @@ function UserAccount() {
     const [notificationEnabled, setNotificationEnabled] = useState(false);
     const navigate = useNavigate();
 
+
     // Load user data from localStorage
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -33,7 +34,9 @@ function UserAccount() {
 
     const handleSaveChanges = async () => {
         try {
-            const response = await fetch('http://localhost:3001/update-user', {
+            const backendURL = process.env.REACT_APP_BACKEND_URL;
+            console.log("Backend URL: ", backendURL);
+            const response = await fetch(`${backendURL}/update-user`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -44,7 +47,7 @@ function UserAccount() {
                     newPassword
                 })
             });
-    
+
             const result = await response.json();
             if (result.success) {
                 console.log('User updated successfully');
@@ -60,126 +63,127 @@ function UserAccount() {
         }
     };
 
+
     const handleDeleteUser = async () => {
-        try{
-            
-            if(window.confirm("Press Ok if you are sure you want to delete your profile.\nThis action is permanent and cannot be reversed.")){
-                const response = await fetch('http://localhost:3001/delete-user',{
+        try {
+
+            if (window.confirm("Press Ok if you are sure you want to delete your profile.\nThis action is permanent and cannot be reversed.")) {
+                const backendURL = process.env.REACT_APP_BACKEND_URL;
+                console.log("Backend URL: ", backendURL);
+                const response = await fetch(`${backendURL}/delete-user`, {
                     method: 'DELETE',
-                    headers: {'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         email
                     })
                 });
 
                 const result = await response.json();
-                if(result.success){
+                if (result.success) {
                     console.log("User: " + email + " was deleted successfully");
                     alert(result.message);
                     localStorage.removeItem('user');
                     navigate('/');
-                }else{
+                } else {
                     alert(result.message);
                 }
             }
-        }catch (error){
+        } catch (error) {
             console.error("Error deleting user:", error);
             alert("An error occurred while attempting to delete your user profile, please try again later.");
         }
-        
+
     };
 
-    
-    
 
     return (
         <>
-            <Navbar/>
+            <Navbar />
             <div className='user-account-container'>
                 <main className='user-account-content'>
-                <h2 className= "section-title"> User Account</h2>
+                    <h2 className="section-title"> User Account</h2>
 
-                <div className='side-by-side-sections'>
-                <div className='user-account-section'>
-                    <h3 className='section-title'>User Details</h3>
-                    <div className='form-group'>
-                        <label>First Name: </label>
-                        <div className='editable-field'>
-                        <input
-                            type="text"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)} 
-                        />
-                        <span className='edit-icon'>&#9998;</span> {/*Edit icon*/}
+                    <div className='side-by-side-sections'>
+                        <div className='user-account-section'>
+                            <h3 className='section-title'>User Details</h3>
+                            <div className='form-group'>
+                                <label>First Name: </label>
+                                <div className='editable-field'>
+                                    <input
+                                        type="text"
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                    />
+                                    <span className='edit-icon'>&#9998;</span> {/*Edit icon*/}
+                                </div>
+                            </div>
+                            <div className='form-group'>
+                                <label>Last Name: </label>
+                                <div className='editable-field'>
+                                    <input
+                                        type="text"
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                    />
+                                    <span className='edit-icon'>&#9998;</span> {/*Edit icon*/}
+
+                                </div>
+                            </div>
+                            <div>
+                                <label>Email: </label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    readOnly
+                                    className='readonly-input'
+                                />
+                            </div>
+                        </div>
+
+                        <div className='change-password-section'>
+                            <h3 className='section-title'>Change Password</h3>
+                            <div className='form-group'>
+                                <label>Current Password: </label>
+                                <input
+                                    type="password"
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                />
+                            </div>
+                            <div className='form-group'>
+                                <label>New Password: </label>
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                />
+                            </div>
+                            <div className='form-group'>
+                                <label>Confirm New Password: </label>
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
-                    <div className='form-group'>
-                        <label>Last Name: </label>
-                        <div className='editable-field'>
-                        <input
-                            type="text"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)} 
-                        />
-                        <span className='edit-icon'>&#9998;</span> {/*Edit icon*/}
 
-                    </div>
-                    </div>
-                    <div>
-                        <label>Email: </label>
-                        <input
-                            type="email"
-                            value={email}
-                            readOnly
-                            className='readonly-input' 
-                        />
-                    </div>
-                </div>
-
-                <div className='change-password-section'>
-                    <h3 className='section-title'>Change Password</h3>
-                        <div className='form-group'>
-                        <label>Current Password: </label>
-                        <input
-                            type="password"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)} 
-                        />
-                        </div>
-                        <div className='form-group'>
-                        <label>New Password: </label>
-                        <input
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)} 
-                        />
-                        </div>
-                        <div className='form-group'>
-                        <label>Confirm New Password: </label>
-                        <input
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)} 
-                        />
-                        </div>
-                    </div>
-                    </div>
-
-                    <h2 className= 'section-title'> Notification Settings</h2>
-                        <div className='notification-section'>
+                    <h2 className='section-title'> Notification Settings</h2>
+                    <div className='notification-section'>
                         <label>ON/OFF:</label>
                         <input
-                        type='checkbox'
-                        checked={notificationEnabled}
-                        onChange={() => setNotificationEnabled(!notificationEnabled)}
+                            type='checkbox'
+                            checked={notificationEnabled}
+                            onChange={() => setNotificationEnabled(!notificationEnabled)}
                         />
-                        </div>
+                    </div>
 
-                        {/*button style*/}
-                        <div className='buttons-container'>
-                            <button type='button' className='save-button' onClick={handleSaveChanges}>Save Changes</button>
-                            <button type='button' className='delete-button' onClick={handleDeleteUser}>Delete Profile</button>
-                        </div>
+                    {/*button style*/}
+                    <div className='buttons-container'>
+                        <button type='button' className='save-button' onClick={handleSaveChanges}>Save Changes</button>
+                        <button type='button' className='delete-button' onClick={handleDeleteUser}>Delete Profile</button>
+                    </div>
                 </main>
             </div>
         </>

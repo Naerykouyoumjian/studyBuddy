@@ -18,7 +18,10 @@ function ForgotPassword(){
         e.preventDefault();
         try{
             //post request to find email in our database
-            const response = await fetch('http://localhost:3001/find-email',{
+            const backendURL = process.env.REACT_APP_BACKEND_URL;
+            const emailServerURL = process.env.REACT_APP_EMAIL_SERVER_URL;
+
+            const response = await fetch(`${backendURL}/find-email`,{
                 method: "POST",
                 headers: { "Content-Type" : "application/json"},
                 body: JSON.stringify({email: email})
@@ -29,7 +32,7 @@ function ForgotPassword(){
             //if the email exists in our database
             if(result.success){
                 //post request to send the reset password email
-                const emailResponse = await fetch("http://localhost:3002/reset-password-email", {
+                const emailResponse = await fetch(`${emailServerURL}/reset-password-email`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({email})
@@ -46,11 +49,12 @@ function ForgotPassword(){
                 
             }else{
                 //email was not found in our database and user is notified
-                alert(result.message)
+                alert(result.message);
             }
         } catch(error){
             //In case an error occurs while trying to send the E-mail -> most likely cause is forgetting to start the E-mail server
-            alert("Error occured while sending E-mail, please try again")
+            console.error("handle email error: ", error);
+            alert("Error occured while sending E-mail, please try again");
         }
         
     };

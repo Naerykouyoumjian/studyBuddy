@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import './SignUp.css';
 import Navbar from './Navbar';
-import { useNavigate } from "react-router-dom";
+import {useNavigate } from "react-router-dom";
 //import googleIcon from './google-icon.png';
 
 
@@ -31,7 +31,8 @@ function SignUp(){
 
         //sending user data to the backend
         try{
-            const response = await fetch('http://localhost:3001/signup', {
+            const backendURL = process.env.REACT_APP_BACKEND_URL;
+            const response = await fetch(`${backendURL}/signup`, {
                 method: 'POST',
                 headers: {'Content-type': 'application/json'},
                 body: JSON.stringify(newUser)
@@ -72,12 +73,14 @@ function SignUp(){
             <label>Confirm Password</label>
             <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
             
+            {/*
             <div className="checkbox-container">
                 <input type="checkbox" id="termsCheckbox" required />
                 <label htmlFor="termsCheckbox">
                     I agree to the <a href="/terms">Terms & Conditions</a>
                 </label>
             </div>
+            */}
 
             <button type="submit">Sign Up</button>
             {errorMsg && <p className="error-message">{errorMsg}</p>}

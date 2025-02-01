@@ -14,7 +14,9 @@ const Login = ({ onLogin }) => {
 const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        const response = await fetch('http://localhost:3001/login', {
+      const backendURL = process.env.REACT_APP_BACKEND_URL;
+      console.log("Backend URL: ", backendURL);
+        const response = await fetch(`${backendURL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -31,11 +33,14 @@ const handleSubmit = async (e) => {
             console.log("User Data Stored:", localStorage.getItem('user')); // Verify stored value
 
             onLogin();  // Simulate successful login
+            console.log("Navigating to dashboard...");
             navigate('/dashboard');  // Redirect to dashboard
         } else {
+          console.log("Login failed:", result.message);
             setErrorMessage(result.message);
         }
     } catch (error) {
+      console.error("Login Error: :", error);
         setErrorMessage('An error occurred. Please try again.');
     }
 };
@@ -73,10 +78,13 @@ const handleSubmit = async (e) => {
           <div className="additional-options">
             <Link to="/signup">Don't have an account? Register here</Link>
             <Link to="/forgot-password">Forgot your password?</Link>
+
+            {/*
             <button className="google-login-button">
               <img src={googleIcon} alt="Google icon" />
               Sign in with Google
-            </button>          
+            </button>
+            */}          
             </div>
         </div>
       </div>

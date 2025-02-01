@@ -3,9 +3,9 @@ import './Navbar.css';
 //importing fonts
 import '@fontsource/new-rocker';
 import '@fontsource/palanquin';
-import React from 'react'
-import { Link } from "react-router-dom"
+import React from "react";
 import { useEffect, useState } from 'react';
+import { Link } from "react-router-dom"
 
 //adding Navbar elements
 const Navbar = () =>{
@@ -13,11 +13,10 @@ const Navbar = () =>{
   
     const handleSignOut = () =>{
       localStorage.removeItem('user');
-      //setSigninStatus(false);
-    };
+    }
 
     useEffect(() => {
-      if(localStorage.getItem("user") === null){
+      if(localStorage.getItem('user') === null){
         setSigninStatus(false);
       }else{
         setSigninStatus(true);
