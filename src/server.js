@@ -38,7 +38,7 @@ app.post('/generate-plan', async (req, res) => {
             `Create an organized study plan.`;
 
         //send the prompt to the OpenAI
-        const completion = await openai.createChatCompletion({
+        const completion = await openai.chat.completion.create({
             model: 'gpt-3.5-turbo',
             messages:
                 [
@@ -48,18 +48,25 @@ app.post('/generate-plan', async (req, res) => {
             max_tokens: 1000,
         });
 
+        //debug to log the entire response from AI
+        console.log("OpenAI Full Response:", JSON.stringify(completion, null, 2));
+
         //check and validate the response
-        if (!completion.data.choices || !completion.data.choices[0].message) {
-            return res.status(500).json({ success: false, message: 'Failed to generate a valid response from the AI.' });
+        if (completion &&
+            completion.choices &&
+            completion.choices[0] &&
+            completion.choices[0].message &&
+            completion.choices[0].message.content) {
+            const studyPlan = completion.choices[0].message.content;
+            return res.status(200).json({ success: true, studyPlan });
+        } else {
+            console.error("Invalid AI response structure:", JSON.stringify(completion, null, 2));
+            return res.status(500).json({ success: false, message: 'Failed to generate a valid study plan.' });
         }
 
-        const studyPlan = completion.data.choices[0].message.content;
-
-        //send the generated plan back to the frontend.
-        res.status(200).json({ success: true, studyPlan });
     } catch (error) {
         console.error('Error generating study plan:', error);
-        res.status(500).json({ success: false, message: 'Failed to generate study plan.' });
+        return res.status(500).json({ success: false, message: 'Failed to generate study plan.' });
     }
 });
 
