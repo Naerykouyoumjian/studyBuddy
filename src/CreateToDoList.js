@@ -269,6 +269,7 @@
 
 // export default CreateToDoList;
 import React, { useState, forwardRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import "./CreateToDoList.css";
 
@@ -299,6 +300,9 @@ function CreateToDoList() {
   const [taskDates, setTaskDates] = useState([]); // array of Dates or null
   const [newTask, setNewTask] = useState("");
   const [newTaskDate, setNewTaskDate] = useState(null);
+
+ // Used to navigate directly to another webpage
+ const navigate = useNavigate();
 
   // --- Add Task ---
   const handleAddTask = () => {
@@ -373,7 +377,9 @@ function CreateToDoList() {
   };
 
   // --- Save List ---
-  const handleSaveList = () => {
+  const handleSaveList = async (e) => {
+    e.preventDefault();
+
     if (!listName.trim()) {
       alert("Please enter a list name!");
       return;
@@ -382,26 +388,40 @@ function CreateToDoList() {
       alert("Please add at least one task!");
       return;
     }
+    
+    try{
+      // gets user info from local storage
+      const user = JSON.parse(localStorage.getItem('user'));
+      // gets user id from user info
+      const userId = user ? user.userId : null;
+      // post request to save the todo list
+      const response = await fetch("http://localhost:3001/save-todo", {
+        method: "POST",
+        headers: {"Content-Type" : "application/json"},
+        body: JSON.stringify({listName, tasks, taskDates, userId})
+      });
 
-    // Example: show summary
-    let msg = `Saved list: ${listName}\n`;
-    tasks.forEach((task, i) => {
-      const d = taskDates[i];
-      if (d) {
-        // Use date-fns to format
-        msg += `- ${task} (due: ${format(d, "M/d/yy")})\n`;
-      } else {
-        msg += `- ${task}\n`;
+      // getting results from test
+      const result = await response.json();
+      if(result.success){
+        // Reset
+        setListName("");
+        setTasks([]);
+        setTaskDates([]);
+        setNewTask("");
+        setNewTaskDate(null);
+        
+        // send user back to dashboard after list is saved
+        navigate("/dashboard");  
       }
-    });
-    alert(msg);
+      // alerts user if the list saved successfully or not
+      alert(result.message);
+      
+    }catch(error){
+      //an error connecting to the server occured and the user is notified
+      alert("Error connecting to the server");
+    }
 
-    // Reset all
-    setListName("");
-    setTasks([]);
-    setTaskDates([]);
-    setNewTask("");
-    setNewTaskDate(null);
   };
 
   // === CUSTOM HEADER for the DatePicker (with "None" option) ===

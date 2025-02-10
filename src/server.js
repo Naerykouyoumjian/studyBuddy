@@ -268,6 +268,7 @@ app.post('/login', (req, res) => {
       success: true,
       message: 'Login successful',
       user: {
+        userId: user.id,
         firstName: user.first_name,
         lastName: user.last_name,
         email: user.email,
@@ -341,5 +342,81 @@ app.delete('/delete-user', (req, res) =>{
       }else{
         res.status(200).json({success: true, message: 'The user profile associated with email: ' + email + ' has been deleted'});
       }
+  });
+});
+
+// Saves a newly created to-do list
+app.post('/save-todo', async (req, res) =>{
+  // gettint list info from request
+  const{ listName, tasks, taskDates, userId} = req.body;
+  // starting transaction so all queries succeed or fail together
+  db.beginTransaction((transErr) =>{
+    // error starting transaction
+    if(transErr){
+      return res.status(500).json({success: false, message: 'This transaction could not be started, please try saving your list again.'});
+    }
+
+    // query to add new list to to-do list table 
+    const addListQuery = 'INSERT INTO todo_lists (user_id, list_name) Values(?, ?)';
+    db.query(addListQuery, [userId, listName], (listErr, result) => {
+      // roll database back to previous state if error occurs while adding list
+      if(listErr){
+        return db.rollback(() =>{
+          res.status(500).json({success: false, message: 'The To-Do List could not be added at this time, please try again later.'});
+        });
+      }
+
+      // getting newly generated list id from insert query
+      const listId = result.insertId;
+      // query to add tasks to task table
+      const addTaskQuery = 'INSERT INTO tasks (list_id, task_description, deadline, priority) Values(?, ?, ?, ?)';
+      
+      // maps a promise for each task in the task array
+      const taskPromises = tasks.map((taskDescription, index) =>{
+        let deadline;
+
+        // checks if the task has a deadline
+        if(taskDates[index] != null){
+          // formats date to match database formatting
+          deadline = taskDates[index].slice(0,10);
+        }else{
+          deadline = null;
+        }
+        // makes a promise to complete (or fail) the insertion of each task 
+        return new Promise ((resolve, reject) =>{
+          db.query(addTaskQuery, [listId, taskDescription, deadline, index + 1], (taskErr, result) =>{
+            // if an error occurrs while adding a task the promise for that task is rejected
+            if(taskErr){
+              return reject(taskErr);
+            }
+            resolve(result)
+          });
+        });
+      });
+
+      // Makes sure all promises were fufiled before commiting
+      Promise.all(taskPromises).then(() => {
+        // attempts to commit 
+        db.commit((commitErr) => {
+          // rolls database back if there is a transaction error
+          if(commitErr){
+            return db.rollback(() =>{
+              res.status(500).json({success: false, message: 'This Transaction could not be completed, please try again'});
+            });
+          }
+          //informs user when to -do list has been saved
+          res.status(200).json({success: true, message: `To-Do List: '${listName}' was saved successfully.`});
+        });
+      }).catch((taskPromisesError) => {
+        // rolls database back if any promise was rejected
+        console.log('Failed to add tasks, error:', taskPromisesError.message);
+        db.rollback(() => {
+          res.status(500).json({success: false, message: 'The To-Do List could not be added at this time due to issues adding a task, please try again later.'});
+        });
+      });
+
+
+    });
+
   });
 });
