@@ -1,3 +1,4 @@
+require('dotenv').config();
 const AWS = require('aws-sdk');
 const ssm = new AWS.SSM({region: 'us-east-2'}); //aws region
 const express = require('express');
@@ -5,24 +6,24 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const db = require('./database');
 const bcrypt = require('bcrypt');
-const { Configuration, OpenAIApi } = require('openai');
+const { OpenAI } = require('openai');
+
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
 
+
 //Configuration for OpenAI API
-const configuration = new Configuration({
+const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-console.log("Configuration created:", configuration); //debug
+console.log("OpenAIApi instance is created:", openai); //debug
 
-const openai = new OpenAIApi(configuration);
 
-console.log("OpenAIApi instance created:", openai); //debug
 
 //route to generate srudy plan
 app.post('/generate-plan', async (req, res) => {
@@ -37,33 +38,43 @@ app.post('/generate-plan', async (req, res) => {
             `Create an organized study plan.`;
 
         //send the prompt to the OpenAI
-        const completion = await openai.createCompletion({
+        const completion = await openai.chat.completion.create({
             model: 'gpt-3.5-turbo',
-            prompt: prompt,
+            messages:
+                [
+                    { role: 'system', content: "You are a helpful assistant that creates study plans." },
+                    { role: 'user', content: prompt }
+                ],
             max_tokens: 1000,
         });
 
-        if (!completion || !completion.data.choices || !completion.data.choices[0]) {
-            return res.status(500).json({ success: false, message: 'Failed to generate a valid response from the AI.' });
+        //debug to log the entire response from AI
+        console.log("OpenAI Full Response:", JSON.stringify(completion, null, 2));
+
+        //check and validate the response
+        if (completion &&
+            completion.choices &&
+            completion.choices[0] &&
+            completion.choices[0].message &&
+            completion.choices[0].message.content) {
+            const studyPlan = completion.choices[0].message.content;
+            return res.status(200).json({ success: true, studyPlan });
+        } else {
+            console.error("Invalid AI response structure:", JSON.stringify(completion, null, 2));
+            return res.status(500).json({ success: false, message: 'Failed to generate a valid study plan.' });
         }
 
-        const studyPlan = completion.data.choices[0].text;
-
-        //send the generated plan back to the frontend.
-        res.status(200).json({ success: true, studyPlan });
     } catch (error) {
-        console.error('Error generatng study plan:', error);
-        res.status(500).json({ success: false, message: 'Failed to generate study plan.' });
+        console.error('Error generating study plan:', error);
+        return res.status(500).json({ success: false, message: 'Failed to generate study plan.' });
     }
 });
 
 //setup a server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(PORT, error => {
+    if (error) return console.error("Server failed to start:", error);
+    console.log(`Server is running on http://3.15.237.83:${PORT}`);
 });
-
-
-
 
 async function getPublicIP(){
   const params = {
@@ -76,13 +87,15 @@ async function getPublicIP(){
     return data.Parameter.Value; //return the stored IP
   } catch (err){
     console.error('Error fetching IP from Parameter Store: ' , err);
-    process.exit(1);
+   // process.exit(1);    
   }
 }
 
 getPublicIP().then(ip => {
   console.log("Fetched Public IP:", ip);
 });
+
+
 
 //default route to check the server status
 app.get('/', (req, res) => {
@@ -113,10 +126,10 @@ try{
   }
 
   // check if email already exists
-const checkQuery = 'SELECT * FROM users WHERE email = ?';
+    const checkQuery = 'SELECT * FROM users WHERE email = ?';
 db.query(checkQuery, [email], async (checkError, checkResult) =>{
   if (checkError){
-    console .error('Database error during email check:' , checkError);
+    console.error('Database error during email check:' , checkError);
     return res.status(500).json({success: false, message: 'Database error during email check.'});
   }
   if (checkResult.length > 0){
@@ -258,10 +271,6 @@ app.post('/save-new-password', (req, res) => {
 });
 
 
-app.listen(PORT, error => {
-  if (error) return console.error("Server failed to start:", error);
-  console.log(`Server is running on http://3.15.237.83:${PORT}`);
-});
 
 /*
 You should write this in the Mysql workbench to work
@@ -309,6 +318,8 @@ create table reset_tokens(
 //     return res.status(200).json({ success: true, message: 'Login successful' });
 //   });
 // });
+
+
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -423,4 +434,3 @@ app.delete('/delete-user', (req, res) =>{
       }
   });
 });
-
