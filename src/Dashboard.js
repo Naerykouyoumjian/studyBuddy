@@ -11,7 +11,7 @@ const Dashboard = () => {
       <div className="dashboard">
         <h1>User Dashboard</h1> 
         <div className="dashboard-content">
-          <div className="card" onClick={() => alert("Create Schedule has been pressed.\nThis feature has not been implemented yet.\nConsider checking out our User Account page instead")}>
+          <div className="card" onClick={() => navigate("/study-plan")}>
             <div className="icon">&#128197;</div>
             <div className="label">Create Schedule</div>
           </div>
