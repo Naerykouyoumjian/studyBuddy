@@ -10,6 +10,8 @@ import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import Dashboard from './Dashboard';
 import CreateToDoList from './CreateToDoList';
+import PreviewToDoLists from './PreviewToDoLists';
+import ViewToDoList from './ViewToDoList';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -48,6 +50,8 @@ function App() {
         <Route path = "/user-account" element = {<UserAccount />} /> 
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/create-todolist" element={<CreateToDoList />} />
+        <Route path="/preview-todolists" element={<PreviewToDoLists />} />
+        <Route path="/view-todolist" element={<ViewToDoList />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

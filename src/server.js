@@ -420,3 +420,102 @@ app.post('/save-todo', async (req, res) =>{
 
   });
 });
+
+app.post('/get-todo-lists', async (req, res) =>{
+  const { user_id }  = req.body;
+  let inProgressLists = [];
+  let completedLists = [];
+  
+  const query = `SELECT todo_lists.list_id, list_name, created_at, completed_at, task_id, task_description, deadline, completed, priority
+                FROM todo_lists 
+                LEFT JOIN tasks ON todo_lists.list_id = tasks.list_id
+                WHERE user_id = ?
+                ORDER BY todo_lists.list_id, priority`;
+  
+  db.query(query, [user_id], async (err, results) => {
+    if(err){
+      return res.status(500).json({success: false, message: "Error Retrieving To-Do Lists"});
+    }
+
+    let progressIndex = 0;
+    let completedIndex = 0;
+    results.forEach(row =>{
+      if(row.completed_at === null){
+        let taskAdded = false;
+        if(!(inProgressLists.length == 0)){
+          for(let i = 0; i < inProgressLists.length; i++){
+              if(row.list_id == inProgressLists[i].list_id){
+                inProgressLists[i].tasks.push({
+                  task_id: row.task_id,
+                  task_description: row.task_description,
+                  deadline: row.deadline,
+                  completed: row.completed,
+                  priority: row.priority
+                });
+                taskAdded = true;
+              }
+          }
+        }
+        if(!taskAdded){
+          inProgressLists.push({
+            list_id: row.list_id,
+            list_name: row.list_name,
+            created_at: row.created_at,
+            completed_at: row.completed_at,
+            tasks: []
+          });
+          inProgressLists[progressIndex].tasks.push({
+            task_id: row.task_id,
+            task_description: row.task_description,
+            deadline: row.deadline,
+            completed: row.completed,
+            priority: row.priority
+          });
+          progressIndex++;
+        }
+      }else{
+        let taskAdded = false;
+        if(!(completedLists.length == 0)){
+          for(let i = 0; i < completedLists.length; i++){
+              if(row.list_id == completedLists[i].list_id){
+                completedLists[i].tasks.push({
+                  task_id: row.task_id,
+                  task_description: row.task_description,
+                  deadline: row.deadline,
+                  completed: row.completed,
+                  priority: row.priority
+                });
+                taskAdded = true;
+              }
+          }
+        }
+        if(!taskAdded){
+          completedLists.push({
+            list_id: row.list_id,
+            list_name: row.list_name,
+            created_at: row.created_at,
+            completed_at: row.completed_at,
+            tasks: []
+          });
+          completedLists[completedIndex].tasks.push({
+            task_id: row.task_id,
+            task_description: row.task_description,
+            deadline: row.deadline,
+            completed: row.completed,
+            priority: row.priority
+          });
+          completedIndex++;
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "To-Do list retrieved successfully",
+      inProgressLists: inProgressLists,
+      completedLists: completedLists
+    });
+
+  });
+});
+
