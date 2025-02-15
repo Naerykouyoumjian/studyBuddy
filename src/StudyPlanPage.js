@@ -5,11 +5,36 @@ import 'react-calendar/dist/Calendar.css';
 import './StudyPlanPage.css';
 
   const StudyPlanPage = () => {
-    const [selectedDate, setSelectedDate] = useState(new Date());
+      const [selectedDate, setSelectedDate] = useState(new Date());
+      const [subject, setSubject] = useState('');
+      const [priority, setPriority] = useState('');
+      const [subjectList, setSubjectList] = useState([]); //store added subjects
 
+      //Handles calendar date change
     const handleDateChange = (date) => {
       setSelectedDate(date);
-    };
+      };
+
+      //Handles adding a subject to the list
+      const handleAddSubject = () => {
+          if (subject.trim() === '' || priority.trim() === '') {
+              alert('Please enter both Subject and Priority level.');
+              return;
+          }
+
+          setSubjectList([...subjectList, { subject, priority }]);
+          setSubject(''); // clear input fields
+          setPriority('');
+      };
+
+      //Handles generating the study plan 
+      const handleGeneratePlan = () => {
+          console.log("Generated Plan:", {
+              selectedDate,
+              subjectList,
+          });
+          alert("Study Plan generated! (Check the console temporary)");
+      };
 
     return (
       <>
@@ -24,20 +49,24 @@ import './StudyPlanPage.css';
             <div className="field">
               <label htmlFor="subject">Subject:</label>
               <input
-                type="text"
-                id="subject"
-                placeholder="Add Subject..."
+                                type="text"
+                                id="subject"
+                                placeholder="Add Subject..."
+                                value={subject}
+                                onChange={(e) => setSubject(e.target.value)}
               />
             </div>
             <div className="field">
               <label htmlFor="priority">Priority Level:</label>
               <input
-                type="text"
-                id="priority"
-                placeholder="Priority Level..."
+                                type="text"
+                                id="priority"
+                                placeholder="Priority Level..."
+                                value={priority}
+                                onChange={(e) => setPriority(e.target.value)}
               />
-            </div>
-            <button className="add-subject-btn">+ Add Subject</button>
+                        </div>
+                        <button className="add-subject-btn" onClick={handleAddSubject}>+ Add Subject </button>
           </div>
           {}
           <div className="calendar-section">
@@ -89,7 +118,7 @@ import './StudyPlanPage.css';
               </select>
             </div>
           ))}
-          <button className="generate-plan-btn">Generate Plan</button>
+             <button className="generate-plan-btn" onClick={handleGeneratePlan}>Generate Plan</button>
         </div>
       </div>
     </>
