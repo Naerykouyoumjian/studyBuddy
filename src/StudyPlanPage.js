@@ -25,7 +25,7 @@ import './StudyPlanPage.css';
           }
 
           //check if subject is already added
-          const isDuplicate = subjectList.some(item => item.subject.toLowerCase() === subject.toLowerCase()); 
+          const isDuplicate = subjectList.some(item => item.subject.toLowerCase() === subject.trim().toLowerCase()); 
           if (isDuplicate) {
               alert('Subject already added');
               return;
@@ -56,12 +56,20 @@ import './StudyPlanPage.css';
               if (checkbox.checked) {
                   const fromTime = row.querySelector('.time-dropdown:first-of-type').value;
                   const toTime = row.querySelector('.time-dropdown:last-of-type').value;
-                  selectedDays.push({ day: checkbox.nextSibling.textContent.trim(), fromTime, toTime });
+
+                  const dayText = checkbox.parentNode.textContent.trim();
+
+                  if (fromTime === toTime) {
+                      alert(`Invalid time range for ${dayText}. Please select different start and end times.`);
+                      return;
+                  }
+
+                  selectedDays.push({ day: dayText, fromTime, toTime });
               }
           });
 
           try {
-              const response = await fetch("http://3.15.237.83:3001/generate-plan", {  
+              const response = await fetch("http://3.15.237.83:3001/generate-plan", {
                   method: "POST",
                   headers: {
                       "Content-Type": "application/json",
@@ -69,26 +77,44 @@ import './StudyPlanPage.css';
                   body: JSON.stringify({
                       subjects: subjectList.map(sub => sub.subject),  // Send only subjects
                       priorities: subjectList.map(sub => sub.priority),
-                      timeSlots: selectedDays, 
+                      timeSlots: selectedDays,
                       startDate: selectedDate.toISOString().split('T')[0], // Format Date
                       endDate: selectedDate.toISOString().split('T')[0] // Example: Same day for now
                   }),
               });
 
-              const data = await response.json();
-
-              if (response.ok) {
-                  console.log("AI Response:", data);
-                  alert("AI Study Plan: " + data.studyPlan); // Show AI-generated plan
-              } else {
-                  console.error("Error from AI:", data);
-                  alert("Error: " + data.message || "Failed to generate study plan.");
+              // Check if response is valid JSON
+              let data;
+              try {
+                  data = await response.json();
+              } catch (jsonError) {
+                  console.error("Error parsing API response:", jsonError);
+                  alert("Error: Received an invalid response from AI. Please try again.");
+                  return;
               }
-          } catch (error) {
+
+
+              if (!response.ok) {
+                  console.error("Error from AI:", data);
+                  alert("Error: " + (data.message || "Failed to generate study plan."));
+                  return;
+              }
+
+              //debug
+              console.log("Full AI Response:", data);
+
+              if (!data.studyPlan) {
+                  console.log("Unexpected AI response format: ", data);
+                  alert("Error: AI response is missing the study plan. Please try again later.");
+                  return;
+              }
+              alert("AI study Plan: " + data.studyPlan);
+          } catch(error) {
               console.error("Request failed:", error);
-              alert("Failed to connect to AI. Check console for details.");
+              alert("Failed to connect to AI. Please check your internet connection and try again.");
           }
       };
+
 
     return (
       <>
