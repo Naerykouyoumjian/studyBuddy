@@ -38,7 +38,7 @@ app.post('/generate-plan', async (req, res) => {
             `Create an organized study plan.`;
 
         //send the prompt to the OpenAI
-        const completion = await openai.chat.completion.create({
+        const completion = await openai.chat.completions.create({
             model: 'gpt-3.5-turbo',
             messages:
                 [
