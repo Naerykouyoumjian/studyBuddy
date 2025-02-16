@@ -11,8 +11,10 @@ import './StudyPlanPage.css';
       const [subjectList, setSubjectList] = useState([]); //store added subjects
 
       //Handles calendar date change
-    const handleDateChange = (date) => {
-      setSelectedDate(date);
+      const handleDateChange = (date) => {
+          if (date) {
+              setSelectedDate(date);
+          }
       };
 
       //Handles adding a subject to the list
@@ -23,7 +25,7 @@ import './StudyPlanPage.css';
           }
 
           //check if subject is already added
-          const isDuplicate = subjectList.some(item => item.subject.toLowerCase() === subject.toLocaleLowerCase()); \
+          const isDuplicate = subjectList.some(item => item.subject.toLowerCase() === subject.toLowerCase()); 
           if (isDuplicate) {
               alert('Subject already added');
               return;
@@ -41,12 +43,51 @@ import './StudyPlanPage.css';
       }
 
       //Handles generating the study plan 
-      const handleGeneratePlan = () => {
-          console.log("Generated Plan:");
-          console.log("Selected Date: ", selectedDate);
-          console.log("Added Subjects:", subjectList);
-          
-          alert("Study Plan generated! (Check the console temporary)");
+      const handleGeneratePlan = async () => {
+          if (subjectList.length === 0) {
+              alert("Please add at least one subject before generating a plan.");
+              return;
+          }
+
+          // Collect checked days and their selected time slots
+          const selectedDays = [];
+          document.querySelectorAll('.day-row').forEach((row) => {
+              const checkbox = row.querySelector('input[type="checkbox"]');
+              if (checkbox.checked) {
+                  const fromTime = row.querySelector('.time-dropdown:first-of-type').value;
+                  const toTime = row.querySelector('.time-dropdown:last-of-type').value;
+                  selectedDays.push({ day: checkbox.nextSibling.textContent.trim(), fromTime, toTime });
+              }
+          });
+
+          try {
+              const response = await fetch("http://3.15.237.83:3001/generate-plan", {  
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                      subjects: subjectList.map(sub => sub.subject),  // Send only subjects
+                      priorities: subjectList.map(sub => sub.priority),
+                      timeSlots: selectedDays, 
+                      startDate: selectedDate.toISOString().split('T')[0], // Format Date
+                      endDate: selectedDate.toISOString().split('T')[0] // Example: Same day for now
+                  }),
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                  console.log("AI Response:", data);
+                  alert("AI Study Plan: " + data.studyPlan); // Show AI-generated plan
+              } else {
+                  console.error("Error from AI:", data);
+                  alert("Error: " + data.message || "Failed to generate study plan.");
+              }
+          } catch (error) {
+              console.error("Request failed:", error);
+              alert("Failed to connect to AI. Check console for details.");
+          }
       };
 
     return (
@@ -78,7 +119,13 @@ import './StudyPlanPage.css';
                                 onChange={(e) => setPriority(e.target.value)}
               />
                         </div>
-                        <button className="add-subject-btn" onClick={handleAddSubject}>+ Add Subject </button>
+                        <button
+                            className="add-subject-btn"
+                            onClick={handleAddSubject}
+                            disabled={!subject.trim() || !priority.trim()}
+                        >
+                            + Add Subject
+                        </button>
           </div>
           {}
           <div className="calendar-section">
@@ -130,7 +177,12 @@ import './StudyPlanPage.css';
               </select>
             </div>
           ))}
-             <button className="generate-plan-btn" onClick={handleGeneratePlan}>Generate Plan</button>
+                    <button className="generate-plan-btn"
+                        onClick={handleGeneratePlan}
+                        disabled={subjectList.length === 0}
+                    >
+                        Generate Plan
+                    </button>
                 </div>
 
                 <div className="subjects-list">
