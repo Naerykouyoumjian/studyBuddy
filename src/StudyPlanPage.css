@@ -12,7 +12,6 @@ body {
   padding: 20px;
 }
 
-
 .study-plan-header {
   text-align: center;
   margin-bottom: 30px;
@@ -22,7 +21,6 @@ body {
   font-size: 28px;
   color: #4c00ff;
 }
-
 
 .top-row {
   display: flex;
@@ -56,6 +54,43 @@ body {
   width: 180px;
 }
 
+.subjects-list {
+    margin-top: 20px;
+    padding: 1px;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+    border-radius: 5px;
+}
+
+.subjects-list h3 {
+    color: #4a4a4a;
+}
+
+.subjects-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.subjects-list li {
+    padding: 8px 10px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.remove-subject-btn {
+      margin-left: 10px;
+      background: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 5px;
+  }
+  .remove-subject-btn:hover {
+      background: darkred;
+  }
 
 .add-subject-btn {
   background-color: #4c00ff;
@@ -125,11 +160,12 @@ body {
 .generate-plan-btn {
   background-color: #4c00ff;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 15px;
   font-size: 14px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  margin-top: 15px;
 }
 
 .generate-plan-btn:hover {

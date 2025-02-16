@@ -22,17 +22,30 @@ import './StudyPlanPage.css';
               return;
           }
 
+          //check if subject is already added
+          const isDuplicate = subjectList.some(item => item.subject.toLowerCase() === subject.toLocaleLowerCase()); \
+          if (isDuplicate) {
+              alert('Subject already added');
+              return;
+          }
+
           setSubjectList([...subjectList, { subject, priority }]);
           setSubject(''); // clear input fields
           setPriority('');
       };
 
+      //Handles deleting a subject from the list
+      const handleRemoveSubject = (index) => {
+          const updatedList = subjectList.filter((_, i) => i !== index);
+          setSubjectList(updatedList);
+      }
+
       //Handles generating the study plan 
       const handleGeneratePlan = () => {
-          console.log("Generated Plan:", {
-              selectedDate,
-              subjectList,
-          });
+          console.log("Generated Plan:");
+          console.log("Selected Date: ", selectedDate);
+          console.log("Added Subjects:", subjectList);
+          
           alert("Study Plan generated! (Check the console temporary)");
       };
 
@@ -44,7 +57,6 @@ import './StudyPlanPage.css';
           <h1>Study Plan Creator</h1>
         </div>
         <div className="top-row">
-          {}
           <div className="fields-column">
             <div className="field">
               <label htmlFor="subject">Subject:</label>
@@ -55,8 +67,8 @@ import './StudyPlanPage.css';
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
               />
-            </div>
-            <div className="field">
+                        </div>
+              <div className="field">
               <label htmlFor="priority">Priority Level:</label>
               <input
                                 type="text"
@@ -119,7 +131,23 @@ import './StudyPlanPage.css';
             </div>
           ))}
              <button className="generate-plan-btn" onClick={handleGeneratePlan}>Generate Plan</button>
-        </div>
+                </div>
+
+                <div className="subjects-list">
+                    <h3>Added Subjects</h3>
+                    {subjectList.length > 0 ? (
+                        <ul>
+                            {subjectList.map((item, index) => (
+                                <li key={index}>
+                                    {item.subject} - Priority: {item.priority}
+                                    <button className="remove-subject-btn" onClick={() => handleRemoveSubject(index)}>Remove</button>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p>No subjects added yet.</p>
+                    )}
+                </div>
       </div>
     </>
   );

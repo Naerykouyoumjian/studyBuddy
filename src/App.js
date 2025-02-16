@@ -47,7 +47,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/user-account" element={<UserAccount />} /> 
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/studyplan" element={<StudyPlanPage />} /> 
+        <Route path="/study-plan" element={<StudyPlanPage />} /> 
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
