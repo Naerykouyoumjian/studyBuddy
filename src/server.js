@@ -70,6 +70,41 @@ app.post('/generate-plan', async (req, res) => {
     }
 });
 
+//Route to save the study plan to database (ONLY when the user clicks "Save Plan")
+app.post('/save-study-plan', (req, res) => {
+
+    //extract user email and study plan 
+    const { userEmail, studyPlan } = req.body;
+
+    //check if all the required fields are provided
+    if (!userEmail || !studyPlan) {
+        return res.status(400).json({
+            success: false,
+            message: 'User email and study plan are required.'
+        });
+    }
+
+    //query to insert the plan into the 'studyPlan' table
+    const query = 'INSERT INTO studyPlans (user_email, plan_text) VALUES (?, ?)';
+
+    //execute the query with the given values (will do only after clicking save)
+    db.query(query, [userEmail, studyPlan], (error, result) => {
+        if (error) {
+            console.error('Database error while saving:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to save the study plan.'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Study plan saved!',
+            planId: result.insertId
+        });
+    });
+});
+
 //setup a server
 app.listen(PORT, error => {
     if (error) return console.error("Server failed to start:", error);
