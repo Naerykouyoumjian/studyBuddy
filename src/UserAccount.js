@@ -138,7 +138,7 @@ function UserAccount() {
                                         readOnly={!isEditingLastName}
                     />
                                     <span className='edit-icon'
-                                        onClick={() => setIsEditingLastName(ture)}
+                                        onClick={() => setIsEditingLastName(true)}
                                             >
                                             &#9998;
                                     </span> {/*Edit icon*/}
