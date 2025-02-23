@@ -13,6 +13,9 @@ function UserAccount() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [notificationEnabled, setNotificationEnabled] = useState(false);
     const navigate = useNavigate();
+    const [isEditingFirstName, setIsEditingFirstName] = useState(false);
+    const [isEditingLastName, setIsEditingLastName] = useState(false);
+
 
 
     // Load user data from localStorage
@@ -54,6 +57,8 @@ function UserAccount() {
                 // Update localStorage with new user details
                 localStorage.setItem('user', JSON.stringify({ firstName, lastName, email }));
                 alert('User information updated successfully!');
+                setIsEditingFirstName(false);
+                setIsEditingLastName(false);
             } else {
                 alert(result.message);
             }
@@ -62,6 +67,8 @@ function UserAccount() {
             alert('An error occurred while updating user information.');
         }
     };
+
+
     const handleDeleteUser = async () => {
         try{
             
@@ -109,22 +116,32 @@ function UserAccount() {
                     <label>First Name: </label>
                     <div className='editable-field'>
                     <input
-                        type="text"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)} 
+                                        type="text"
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        readOnly={!isEditingFirstName}
                     />
-                    <span className='edit-icon'>&#9998;</span> {/*Edit icon*/}
+                                    <span
+                                        className='edit-icon'
+                                        onClick={() => setIsEditingFirstName(true)}
+                                    >&#9998;
+                                    </span> {/*Edit icon*/}
                     </div>
                 </div>
                 <div className='form-group'>
                     <label>Last Name: </label>
                     <div className='editable-field'>
                     <input
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)} 
+                                        type="text"
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        readOnly={!isEditingLastName}
                     />
-                    <span className='edit-icon'>&#9998;</span> {/*Edit icon*/}
+                                    <span className='edit-icon'
+                                        onClick={() => setIsEditingLastName(ture)}
+                                            >
+                                            &#9998;
+                                    </span> {/*Edit icon*/}
 
                 </div>
                 </div>
