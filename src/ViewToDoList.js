@@ -28,12 +28,15 @@ function ViewToDoList() {
 
   const navigate = useNavigate();
 
-  // State: list name, creation date, tasks array
-  const [listName, setListName] = useState("");
-  const [listCreationDate, setListCreationDate] = useState(null);
+  // State: list id, name, creation date, completion date, and tasks array
+  const [listDetails, setListDetails] = useState(listInfo || {
+    list_id: null,
+    list_name: "",
+    created_at: null,
+    completed_at: null,
+    tasks: [],
+  });
 
-  // tasks: [{ description, completed, dueDate }, ...]
-  const [tasks, setTasks] = useState([]);
   // For adding a new task
   const [newTask, setNewTask] = useState("");
   const [newTaskDate, setNewTaskDate] = useState(null);
@@ -41,123 +44,128 @@ function ViewToDoList() {
   // On first load, populate from listInfo
   useEffect(() => {
     if (listInfo) {
-      setListName(listInfo.list_name || "");
-      if (listInfo.created_at) {
-        setListCreationDate(new Date(listInfo.created_at));
-      }
-
-      if (Array.isArray(listInfo.tasks)) {
-        const converted = listInfo.tasks.map((t) => ({
-          description: t.task_description,
-          completed: !!t.completed,
-          dueDate: t.due_date ? new Date(t.due_date) : null,
-        }));
-        setTasks(converted);
-      }
+      setListDetails(listInfo);
     }
   }, [listInfo]);
 
   // --- Add a new task ---
   const handleAddTask = () => {
     if (!newTask.trim()) return;
-    setTasks((prev) => [
+    const newTaskObj = {
+      task_id: null,
+      task_description: newTask.trim(),
+      completed: false,
+      deadline: newTaskDate,
+      priority: null,
+    };
+    setListDetails((prev) => ({
       ...prev,
-      { description: newTask.trim(), completed: false, dueDate: newTaskDate },
-    ]);
+      tasks:[...prev.tasks, newTaskObj],
+    }));
     setNewTask("");
     setNewTaskDate(null);
   };
 
+  // -- updating changed task information --
+  const updateTask = (index, updatedTask) =>{
+    setListDetails((prev) => {
+      const updatedTasks = [...prev.tasks];
+      if(updatedTasks[index]){
+        updatedTasks[index] = {...updatedTasks[index], ...updatedTask};
+      }
+      return {...prev, tasks: updatedTasks};
+    });
+  }
+
   // --- Toggle checkbox / line-through ---
   const toggleCompleted = (index) => {
-    setTasks((prev) => {
-      const updated = [...prev];
-      updated[index].completed = !updated[index].completed;
-      return updated;
-    });
+    if(listDetails.tasks[index]){
+      updateTask(index, {completed: !listDetails.tasks[index].completed});
+    }
   };
 
   // --- Delete a single task ---
   const handleDeleteTask = (index) => {
-    setTasks((prev) => prev.filter((_, i) => i !== index));
+    setListDetails((prev) => ({
+      ...prev,
+      tasks: prev.tasks.filter((_, i) => i !== index),
+    }));
   };
 
   // --- Move Up ---
   const handleMoveUp = (index) => {
     if (index === 0) return;
-    setTasks((prev) => {
-      const updated = [...prev];
-      [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
-      return updated;
-    });
+    setListDetails((prev) => {
+      const updatedTasks = [...prev.tasks];
+      [updatedTasks[index - 1], updatedTasks[index]] = [updatedTasks[index], updatedTasks[index - 1]];
+      return {... prev, tasks: updatedTasks};
+    })
   };
 
   // --- Move Down ---
   const handleMoveDown = (index) => {
-    setTasks((prev) => {
-      if (index === prev.length - 1) return prev;
-      const updated = [...prev];
-      [updated[index + 1], updated[index]] = [updated[index], updated[index + 1]];
-      return updated;
+    if(index === listDetails.tasks.length - 1) return;
+    setListDetails((prev) =>{
+      const updatedTasks = [...prev.tasks];
+      [updatedTasks[index + 1], updatedTasks[index]] = [updatedTasks[index], updatedTasks[index + 1]];
+      return {... prev, tasks: updatedTasks};
     });
   };
 
   // --- Edit task text ---
   const handleEditTask = (index) => {
-    const edited = prompt("Edit task:", tasks[index].description);
+    const edited = prompt("Edit task:", listDetails.tasks[index].task_description);
     if (edited !== null && edited.trim()) {
-      setTasks((prev) => {
-        const updated = [...prev];
-        updated[index].description = edited.trim();
-        return updated;
-      });
+      updateTask(index, {task_description: edited.trim() });
     }
   };
 
   // --- Change a task's due date ---
   const handleDateChange = (index, date) => {
-    setTasks((prev) => {
-      const updated = [...prev];
-      updated[index].dueDate = date;
-      return updated;
-    });
+    updateTask(index, {deadline: date})
   };
+
+  const handleListNameChange = (e) =>{
+    setListDetails((prev) => ({...prev, list_name: e.target.value}));
+  }
 
   // --- Save the entire list ---
   const handleSaveList = async (e) => {
     e.preventDefault();
-    if (!listName.trim()) {
+    if (!listDetails.list_name.trim()) {
       alert("Please enter a list name!");
       return;
     }
-    if (tasks.length === 0) {
+    if (listDetails.tasks.length === 0) {
       alert("Please add at least one task!");
       return;
     }
+
+    // checking if list is completed and setting completion date when necessary
+    let isComplete = true;
+    listDetails.tasks.forEach((task) => {
+      if(!task.completed){
+        isComplete = false;
+      }
+    });
+    listDetails.completed_at = isComplete ? new Date() : null;
+    
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user ? user.userId : null;
 
-      const formatted = tasks.map((t) => ({
-        task_description: t.description,
-        completed: t.completed,
-        due_date: t.dueDate ? t.dueDate.toISOString() : null,
-      }));
-
-      const response = await fetch("http://localhost:3001/save-todo", {
+      const response = await fetch("http://localhost:3001/update-todo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listName, tasks: formatted, userId }),
+        body: JSON.stringify({listDetails, userId }),
       });
+
       const result = await response.json();
       alert(result.message);
 
       if (result.success) {
         // Reset
-        setListName("");
-        setTasks([]);
-        setNewTask("");
-        setNewTaskDate(null);
+        setListDetails();
 
         // Navigate away (e.g. back to dashboard)
         navigate("/dashboard");
@@ -167,6 +175,7 @@ function ViewToDoList() {
     }
   };
 
+  
   // --- Delete entire list ---
   const handleDeleteList = async () => {
     if (!window.confirm("Are you sure you want to delete this list?")) return;
@@ -178,7 +187,7 @@ function ViewToDoList() {
       const response = await fetch("http://localhost:3001/delete-todo-list", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, listName }),
+        body: JSON.stringify({ userId, list_id: listDetails.list_id }),
       });
 
       const result = await response.json();
@@ -190,6 +199,10 @@ function ViewToDoList() {
     } catch (err) {
       alert("Error connecting to the server");
     }
+  };
+  
+  const handleBackBtn = () =>{
+    navigate("/preview-todolists");
   };
 
   // --- Custom header for DatePicker popup (with "None" button) ---
@@ -233,8 +246,8 @@ function ViewToDoList() {
                 className="list-name-input"
                 type="text"
                 placeholder="Enter To-Do List Name"
-                value={listName}
-                onChange={(e) => setListName(e.target.value)}
+                value={listDetails.list_name}
+                onChange={handleListNameChange}
               />
             </div>
 
@@ -265,9 +278,7 @@ function ViewToDoList() {
 
             {/* Existing tasks list */}
             <div className="tasks-container">
-              {tasks.map((task, index) => {
-                const { description, completed, dueDate } = task;
-
+              {listDetails.tasks.map((task, index) => {
                 return (
                   <div key={index} className="task-row">
                     {/* LEFT: checkbox + text */}
@@ -275,24 +286,32 @@ function ViewToDoList() {
                       <input
                         className="task-checkbox"
                         type="checkbox"
-                        checked={completed}
+                        checked={task.completed}
                         onChange={() => toggleCompleted(index)}
                       />
-                      <span
-                        className="task-text"
-                        style={{ textDecoration: completed ? "line-through" : "none" }}
-                      >
-                        {description}
-                      </span>
+                      <div style={{display: "flex", alignItems: "center", gap: "0.5rem"}}>
+                        <span
+                          className="task-text"
+                          style={{ textDecoration: task.completed ? "line-through" : "none" }}
+                        >
+                          {task.task_description}
+                        </span>
+                        {/* printing deadine in red if applicable */}
+                        {task.deadline && (
+                          <span style = {{color: "red" }}>
+                            deadline: {format(task.deadline, "M/d/yy")}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* RIGHT: date icon, edit, delete, up/down */}
                     <div className="task-right">
                       <DatePicker
-                        selected={dueDate}
+                        selected={task.deadline}
                         onChange={(d) => handleDateChange(index, d)}
                         placeholderText="Change date"
-                        renderCustomHeader={renderDateHeader(index, dueDate, handleDateChange)}
+                        renderCustomHeader={renderDateHeader(index, task.deadline, handleDateChange)}
                         customInput={<CalendarButton />}
                       />
                       <button className="icon-btn" onClick={() => handleEditTask(index)}>
@@ -310,11 +329,11 @@ function ViewToDoList() {
                       <button
                         className="icon-btn"
                         onClick={() => handleMoveDown(index)}
-                        disabled={index === tasks.length - 1}
+                        disabled={index === listDetails.tasks.length - 1}
                       >
                         <ArrowDownIcon
                           className="icon"
-                          style={{ opacity: index === tasks.length - 1 ? 0.4 : 1 }}
+                          style={{ opacity: index === listDetails.tasks.length - 1 ? 0.4 : 1 }}
                         />
                       </button>
                     </div>
@@ -325,13 +344,20 @@ function ViewToDoList() {
           </div>
 
           {/* Creation Date at bottom */}
-          {listCreationDate && (
+          {listDetails.created_at && (
             <p style={{ margin: "1rem 0" }}>
-              Creation Date: {format(listCreationDate, "MM/dd/yy")}
+              Creation Date: {format(listDetails.created_at, "MM/dd/yy")}
             </p>
           )}
 
-          {/* Save/Delete Buttons */}
+          {/* Completion Date at bottom */}
+          {listDetails.completed_at && (
+            <p style={{ margin: "1rem 0" }}>
+              Completion Date: {format(listDetails.completed_at, "MM/dd/yy")}
+            </p>
+          )}
+
+          {/* Save/Delete/ Back Buttons */}
           <div style={{ display: "flex", justifyContent: "center", gap: "2rem" }}>
             <button className="save-list-btn" onClick={handleSaveList}>
               Save List
@@ -342,6 +368,9 @@ function ViewToDoList() {
               onClick={handleDeleteList}
             >
               Delete List
+            </button>
+            <button className ="back-btn" onClick={handleBackBtn}>
+              Go Back
             </button>
           </div>
         </div>

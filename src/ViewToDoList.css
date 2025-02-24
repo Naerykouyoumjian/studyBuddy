@@ -143,7 +143,7 @@
   }
   
   /* Save List button (and Delete List, if you share the style) */
-  .save-list-btn {
+  .save-list-btn, .back-btn {
     background-color: #2c00aa;
     color: white;
     border: none;
@@ -151,8 +151,9 @@
     border-radius: 4px;
     font-size: 1rem;
     cursor: pointer;
+    margin: 2.5rem;
   }
-  .save-list-btn:hover {
+  .save-list-btn:hover, .back-btn:hover {
     opacity: 0.8;
   }
   

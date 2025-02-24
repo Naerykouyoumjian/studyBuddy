@@ -416,16 +416,20 @@ app.post('/save-todo', async (req, res) =>{
       });
 
 
+
     });
 
   });
 });
 
+// gets to-do list information for preview page
 app.post('/get-todo-lists', async (req, res) =>{
+  // getting user id from request
   const { user_id }  = req.body;
   let inProgressLists = [];
   let completedLists = [];
   
+  // query to get all the lists associated with a specific user
   const query = `SELECT todo_lists.list_id, list_name, created_at, completed_at, task_id, task_description, deadline, completed, priority
                 FROM todo_lists 
                 LEFT JOIN tasks ON todo_lists.list_id = tasks.list_id
@@ -439,9 +443,12 @@ app.post('/get-todo-lists', async (req, res) =>{
 
     let progressIndex = 0;
     let completedIndex = 0;
+    // goes through results and seperates each to-do list into completed and in progress arrays
     results.forEach(row =>{
+      // in progress list
       if(row.completed_at === null){
         let taskAdded = false;
+        // the list already exists and just the task needs to be added
         if(!(inProgressLists.length == 0)){
           for(let i = 0; i < inProgressLists.length; i++){
               if(row.list_id == inProgressLists[i].list_id){
@@ -456,6 +463,7 @@ app.post('/get-todo-lists', async (req, res) =>{
               }
           }
         }
+        // the list does not exist already both the list and the task need to be added
         if(!taskAdded){
           inProgressLists.push({
             list_id: row.list_id,
@@ -473,8 +481,10 @@ app.post('/get-todo-lists', async (req, res) =>{
           });
           progressIndex++;
         }
+        // completed list
       }else{
         let taskAdded = false;
+        // the list already exists in the array, just the task needs to be added
         if(!(completedLists.length == 0)){
           for(let i = 0; i < completedLists.length; i++){
               if(row.list_id == completedLists[i].list_id){
@@ -489,6 +499,7 @@ app.post('/get-todo-lists', async (req, res) =>{
               }
           }
         }
+        // the list did not exist and both list and task must be added
         if(!taskAdded){
           completedLists.push({
             list_id: row.list_id,
@@ -509,6 +520,7 @@ app.post('/get-todo-lists', async (req, res) =>{
       }
     });
 
+    // returns arrays with in progress and completed lists
     res.json({
       success: true,
       message: "To-Do list retrieved successfully",
@@ -516,6 +528,138 @@ app.post('/get-todo-lists', async (req, res) =>{
       completedLists: completedLists
     });
 
+  });
+});
+
+// update list and task infomation once its been edited
+app.post('/update-todo', async(req, res) =>{
+  // getting data from request
+  const {listDetails, userId} = req.body;
+
+  // deconstructing list details
+  const {list_id, list_name, created_at, completed_at, tasks} = listDetails;
+
+  // starting transaction so all queries fail or scucceed together
+  db.beginTransaction((transErr) =>{
+    if(transErr){
+      return res.status(500).json({success: false, message: "This transaction could not be started, please try saving your list again."});
+    }
+
+    // query to update list information
+    const updateListQuery = "UPDATE todo_lists SET list_name = ?, completed_at = ? WHERE list_id = ? AND user_id = ?";
+    db.query(updateListQuery, [list_name, completed_at, list_id, userId], (err, results) =>{
+      // rolls back transaction to start if query fails
+      if(err){
+        return db.rollback(() =>{
+          return res.status(500).json({success: false, message: 'The To-Do List could not be updated at this time, please try again later.'});
+        });
+      }
+
+      // query to get get task ids
+      const getTasksQuery = "SELECT task_id FROM tasks WHERE list_id = ?";
+      db.query(getTasksQuery, [list_id], (getTasksErr, results) => {
+        if(getTasksErr){
+          // rolls back transaction to start if query fails
+          return db.rollback(() =>{
+            return res.status(500).json({success: false, message: 'The list tasks could not be retrieved at this time, please try again later.'});
+          });
+        }
+
+        // compares tasks in database to updated tasks
+        const existingTaskIds = results.map(row => row.task_id);
+        const updatedTaskIds = tasks.filter(task => task.task_id !== null).map(task => task.task_id);
+        // stores the task ids of tasks that need to be deleted from the database
+        const deletedTaskIds = existingTaskIds.filter(id => !updatedTaskIds.includes(id));
+
+        // deletes tasks from the database
+        const deleteTask = (taskId) => {
+          return new Promise((resolve, reject) =>{
+            // query to delete task
+            const deleteTaskQuery = "DELETE FROM tasks WHERE task_id = ?";
+            db.query(deleteTaskQuery, [taskId], (deleteTaskErr, results) =>{
+              if(deleteTaskErr){
+                return reject(deleteTaskErr);
+              }
+              resolve();
+            });
+          });
+        };
+
+        // makes the promise to complete each deletion 
+        const deleteTaskPromises = deletedTaskIds.map(deleteTask);
+        
+        // updates task info if task already existed
+        const updateTask = (task) =>{
+          return new Promise((resolve, reject) =>{
+            //query to update task information
+            const updateTaskQuery = "UPDATE tasks SET task_description = ?, deadline = ?, completed = ?, priority = ? WHERE task_id = ? AND list_id = ?";
+            db.query(updateTaskQuery, [task.task_description, task.deadline, task.completed, task.priority, task.task_id, list_id], (updateTaskErr, results) =>{
+              if(updateTaskErr){
+                return reject(updateTaskErr);
+              }
+              resolve();
+            });
+          });
+        };
+
+        // adds task to task table in database if task did not exist before
+        const addTask = (task) =>{
+          return new Promise((resolve, reject) =>{
+            // query to add task to task table
+            const addTaskQuery = "INSERT INTO tasks (list_id, task_description, deadline, completed, priority) VALUES(?, ?, ?, ?, ?)";
+            db.query(addTaskQuery, [list_id, task.task_description, task.deadline, task.completed, task.priority], (addTaskErr, results) =>{
+              if(addTaskErr){
+                return reject(addTaskErr);
+              }
+              resolve();
+            });
+          });
+        };
+
+        // makes a promise to complete each task insertion or update
+        const taskPromises = tasks.map((task, index) =>{
+          task.priority = index + 1;
+          if(task.task_id){
+            return updateTask(task);
+          } else{
+            return addTask(task);
+          }
+        });
+
+        // ensures all promises were fullfilled
+        Promise.all([...deleteTaskPromises, ...taskPromises]).then(() => {
+          db.commit((err) => {
+            if(err){
+              return db.rollback(() =>{
+                return res.status(500).json({success: false, message: 'The To-Do List could not be updated at this time, please try again later.'});
+              });
+            }
+            res.status(200).json({success: true, message: "To-do list was updated sucessfully"});
+          });
+        }).catch((err) =>{
+          db.rollback(() =>{
+            return res.status(500).json({success: false, message: 'The transaction promises could not be made at this time, please try again later.'});
+          });
+        });
+      });
+    });
+  });
+});
+
+// deleting to do list from database
+app.delete('/delete-todo-list', async(req, res) =>{
+  // getting list info from request
+  const {userId, list_id} = req.body;
+
+  // delete query
+  const deleteListQuery = 'DELETE FROM todo_lists WHERE list_id = ? AND user_id = ?';
+
+  // making query to the database, only list deletion needs to be done, cascade rules will delete the tasks for us
+  db.query(deleteListQuery, [list_id, userId], (err, results) =>{
+    if(err){
+      return res.status(500).json({success: false, message: 'The To-Do List could not be deleted at this time, please try again later.'});
+    }
+    return res.status(200).json({success: true, message: 'The To-Do List was deleted successfully.'});
   });
 });
 

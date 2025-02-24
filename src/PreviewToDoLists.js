@@ -13,12 +13,13 @@ function PreviewToDoList(){
 
     const colors = ["#FFF835", "#89CFF0", "#FF87CF", "#C86FFC", "#8AFF9C"]  // yellow, blue, pink, purple, green
 
+    // chooses a random color from our list of colors
     const getRandomColor = () => {
         return colors[Math.floor(Math.random() * colors.length)];
     };
   
     
-    
+    // gets the completed and in progress lists from database
     useEffect(() => {
       const fetchLists = async () => {
         try{
@@ -51,6 +52,7 @@ function PreviewToDoList(){
                 <div className="preview-todo-content">
                     <div className="header">
                         <h2 className="section-title">{user.firstName}'s To-Do Lists</h2>
+                        {/* radio buttons to choose between in progress and completed lists */}
                         <div className="radio-buttons">
                             <label className="radio">
                                 <input 
@@ -76,9 +78,11 @@ function PreviewToDoList(){
 
                     <div className="preview-list-section">
                         <div className="lists">
+                          {/* checks if users has any lists and displays message if none exist */}
                           {selectedOption === "progress" && inProgressLists.length === 0 && (
                             <p className="no-lists">You currently have no in progress lists to preview, To-Do lists saved from the Create To-Do List page will show up here.</p>
                           )}
+                            {/* displays preview of each todo list user has created links to single view of list that can be edited */}
                             {selectedOption === "progress" && inProgressLists.map((list, index) => (
                               <Link to={`/view-todolist`} state={{ listInfo: list}} className="view-link">
                                 <div key={index} className="single-list" style={{backgroundColor: getRandomColor()}}>
@@ -102,10 +106,12 @@ function PreviewToDoList(){
                               </Link>
                             ))}
 
+                            {/* checks if users has any lists and displays message if none exist */}
                             {selectedOption === "completed" && completedLists.length === 0 && (
                               <p className="no-lists">You currently have no completed lists to preview,  lists where all tasks have been marked complete will show up here.</p>
                             )}
 
+                            {/* displays preview of each todo list user has created links to single view of list that can be edited */}
                             {selectedOption === "completed" && completedLists.map((list, index) => (
                               <Link to={`/view-todolist`} state={{ listInfo: list}} className="view-link">
                                 <div key={index} className="single-list" style={{backgroundColor: getRandomColor()}}>
