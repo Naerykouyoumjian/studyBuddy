@@ -3,12 +3,15 @@ import Navbar from './Navbar';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './StudyPlanPage.css';
+import { useNavigate } from 'react-router-dom';
 
   const StudyPlanPage = () => {
       const [selectedDate, setSelectedDate] = useState(new Date());
       const [subject, setSubject] = useState('');
       const [priority, setPriority] = useState('');
       const [subjectList, setSubjectList] = useState([]); //store added subjects
+
+      const navigate = useNavigate();
 
       //Handles calendar date change
       const handleDateChange = (date) => {
@@ -108,8 +111,14 @@ import './StudyPlanPage.css';
                   alert("Error: AI response is missing the study plan. Please try again later.");
                   return;
               }
-              alert("AI study Plan: " + data.studyPlan);
-          } catch(error) {
+
+              //store the study plan in local storage before navigating
+              localStorage.setItem("StudyPlan", JSON.stringify(data.studyPlan));
+
+              //navigate to the studySchedule page
+              navigate("/study-schedule");
+
+          } catch (error) {
               console.error("Request failed:", error);
               alert("Failed to connect to AI. Please check your internet connection and try again.");
           }
