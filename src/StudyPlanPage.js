@@ -113,6 +113,7 @@ import { useNavigate } from 'react-router-dom';
               }
 
               //store the study plan in local storage before navigating
+              console.log("Storing Study Plan in local storage:", data.studyPlan);
               localStorage.setItem("StudyPlan", JSON.stringify(data.studyPlan));
 
               //navigate to the studySchedule page

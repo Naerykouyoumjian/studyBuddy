@@ -1,11 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './StudySchedule.css';
 import Navbar from './Navbar';
 import Calendar from 'react-calendar'; // Importing calendar package
 import 'react-calendar/dist/Calendar.css';
 
 const StudySchedule = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(new Date());
+
+    //state to store the retrieved study plan
+    const [studyPlan, setStudyPlan] = useState(null);
+
+    //fetch the study plan from local storage when page loads
+    useEffect(() => {
+        const storedPlan = localStorage.getItem("StudyPlan");
+        console.log("Retrieved Study Plan from localStorage:", storedPlan);
+
+        if (storedPlan) {
+            setStudyPlan(JSON.parse(storedPlan));
+        }
+
+    }, []);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -15,7 +29,20 @@ const StudySchedule = () => {
     <>
       <Navbar /> {/* StudyBuddy Navbar */}
 
-      <div className="schedule-page">
+          <div className="schedule-page">
+
+              {/*Study Plan Display Section */}
+              <div className="study-plan-container">
+                  <h2>Generated Study Plan</h2>
+                  {studyPlan ? (
+                      <div>
+                          <pre>{studyPlan}</pre>
+                      </div>
+                  ) : (
+                      <p>No study plan available.</p>
+                  )}
+              </div>
+
         {/* Schedule Section */}
         <div className="schedule-container">
           <div className="week-header">

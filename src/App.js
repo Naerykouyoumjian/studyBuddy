@@ -5,7 +5,7 @@ import UserAccount from './UserAccount';
 import Login from './Login';
 import FAQ from './FAQ';
 import StudyPlanPage from './StudyPlanPage';
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import NotFound from "./NotFound";
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
@@ -16,24 +16,23 @@ function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [showSignUp, setShowSignUp] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
-    const navigate = useNavigate();
 
     const handleLogin = () => {
         setIsAuthenticated(true);
         setShowLogin(false);
-        navigate("/dashboard");
+        window.location.href = "/dashboard";
     };
 
     const handleShowSignUp = () => {
         setShowSignUp(true);
         setShowLogin(false);
-        navigate("/signup");
+        window.location.href = "/signup";
     };
 
     const handleShowLogin = () => {
         setShowLogin(true);
         setShowSignUp(false);
-        navigate("/signin");
+        window.location.href = "/signin";
     };
 
     return (
