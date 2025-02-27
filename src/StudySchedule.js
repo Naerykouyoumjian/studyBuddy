@@ -3,6 +3,7 @@ import './StudySchedule.css';
 import Navbar from './Navbar';
 import Calendar from 'react-calendar'; // Importing calendar package
 import 'react-calendar/dist/Calendar.css';
+import { Textract } from '../node_modules/aws-sdk/index';
 
 const StudySchedule = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -10,20 +11,43 @@ const StudySchedule = () => {
     //state to store the retrieved study plan
     const [studyPlan, setStudyPlan] = useState(null);
 
+    const [timeSlots, setTimeSlots] = useState([]); //to store the extracted time slots
+
     //fetch the study plan from local storage when page loads
     useEffect(() => {
         const storedPlan = localStorage.getItem("StudyPlan");
-        console.log("Retrieved Study Plan from localStorage:", storedPlan);
+
+        //Extract time slots when plan loads
+        extractTimeSlots(JSON.parse(storedPlan));
 
         if (storedPlan) {
             setStudyPlan(JSON.parse(storedPlan));
         }
-
     }, []);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
-  };
+    };
+
+    //function to extract time slots from the study plan
+    const extractTimeSlots = (plan) => {
+        let extractedSlots = [];
+        const lines = plan.split("\n");
+
+        lines.forEach((line) => {
+            const match = line.match(/(\d{1,2}:\d{2} [APM]+) - (\d{1,2}:\d{2} [APM]+)/);
+            if (match) {
+                extractedSlots.push({
+                    startTime: match[1],
+                    endTime: match[2],
+                    subject: line.split(":")[1]?.trim() || "Study Session",
+                });
+            }
+        });
+        setTimeSlots(extractedSlots);
+    };
+
+
 
   return (
     <>
@@ -70,7 +94,18 @@ const StudySchedule = () => {
 
             <div className="schedule-content">
               {Array.from({ length: 24 }, (_, i) => (
-                <div key={i} className="schedule-row"></div>
+                  <div key={i} className="schedule-row">
+                  { timeSlots.map((slot, index) => {
+                                  const startHour = parseInt(slot.startTime.split(":")[0]);
+                      return startHour === i ? (
+                          <div key={index} className="study-session">
+                              {slot.subject}
+                              <span>{slot.startTime} - {slot.endTime}
+                              </span>
+                              </div>
+                              ) : null;
+                              })}
+                              </div>
               ))}
             </div>
           </div>

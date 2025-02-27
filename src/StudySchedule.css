@@ -5,6 +5,26 @@
   padding: 20px;
 }
 
+.study-session span {
+  font-size: 12px;
+  display: block;
+  margin-top: 3px;
+}
+
+
+.study-session {
+  background: #4c00ff;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 14px;
+  width: 90%;
+  margin: auto;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
 .schedule-container {
   width: 60%; 
   background-color: white;
@@ -61,9 +81,12 @@
 }
 
 .schedule-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
   height: 50px;
-  border-bottom: 1px solid #ddd; 
-  width: 100%;
+  border-bottom: 1px solid #ddd;
 }
 
 
