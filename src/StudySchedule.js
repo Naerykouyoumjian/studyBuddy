@@ -35,7 +35,7 @@ const StudySchedule = () => {
               <div className="study-plan-container">
                   <h2>Generated Study Plan</h2>
                   {studyPlan ? (
-                      <div>
+                      <div className="study-plan-box">
                           <pre>{studyPlan}</pre>
                       </div>
                   ) : (
@@ -43,7 +43,10 @@ const StudySchedule = () => {
                   )}
               </div>
 
-        {/* Schedule Section */}
+              
+              <div className="schedule-content-wrapper">
+
+                  {/* Schedule Section */}
         <div className="schedule-container">
           <div className="week-header">
            
@@ -83,7 +86,8 @@ const StudySchedule = () => {
           />
           <button className="save-plan">Save Plan</button>
           <button className="delete-plan">Delete Plan</button>
-        </div>
+                  </div>
+                  </div>
       </div>
     </>
   );

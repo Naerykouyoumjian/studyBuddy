@@ -12,7 +12,8 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
   overflow-y: auto; 
-  max-height: 600px; 
+  max-height: 600px;
+  flex: 2;
 }
 
 .week-header {
@@ -65,12 +66,40 @@
   width: 100%;
 }
 
+
+.study-plan-container {
+   width: 80%;
+   max-width: 800px;
+   margin: 20px auto;
+   padding: 15px;
+   background: #fff;
+   border-radius: 8px;
+   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+   text-align: left;
+ }
+
+.study-plan-box {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  font-family: 'Courier New', monospace;
+}
+
+.schedule-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+}
+
 .calendar-section {
   width: 300px;
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
+  flex: 1;
 }
 
 .calendar-section h3 {
