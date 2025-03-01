@@ -15,7 +15,7 @@
 .study-session {
   background: #4c00ff;
   color: white;
-  padding: 5px;
+  padding: 8px;
   border-radius: 5px;
   text-align: center;
   font-size: 14px;
@@ -24,6 +24,10 @@
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.study-session strong {
+  display: block;
+  font-size: 16px;
+}
 
 .schedule-container {
   width: 60%; 
@@ -39,7 +43,7 @@
 .week-header {
   display: flex;
   justify-content: space-around;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
   padding: 10px;
   border-bottom: 1px solid #ddd;
@@ -117,12 +121,12 @@
 }
 
 .calendar-section {
-  width: 300px;
+  min-width: 350px;
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  flex: 1;
+  flex: 1.5;
 }
 
 .calendar-section h3 {

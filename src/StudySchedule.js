@@ -3,36 +3,35 @@ import './StudySchedule.css';
 import Navbar from './Navbar';
 import Calendar from 'react-calendar'; // Importing calendar package
 import 'react-calendar/dist/Calendar.css';
-import { Textract } from '../node_modules/aws-sdk/index';
+
 
 const StudySchedule = () => {
+    //state to manage selected date on the calendar
     const [selectedDate, setSelectedDate] = useState(new Date());
 
     //state to store the retrieved study plan
     const [studyPlan, setStudyPlan] = useState(null);
 
-    const [timeSlots, setTimeSlots] = useState([]); //to store the extracted time slots
+    //state to store the extracted time slots from study plan
+    const [timeSlots, setTimeSlots] = useState([]); 
 
     //fetch the study plan from local storage when page loads
     useEffect(() => {
         const storedPlan = localStorage.getItem("StudyPlan");
 
-        //Extract time slots when plan loads
-        extractTimeSlots(JSON.parse(storedPlan));
-
         if (storedPlan) {
-            setStudyPlan(JSON.parse(storedPlan));
+            const parsedPlan = JSON.parse(storedPlan);
+            setStudyPlan(parsedPlan);  //store the full plan
+            extractTimeSlots(parsedPlan); //Extract time slots when plan loads
         }
     }, []);
 
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-    };
-
     //function to extract time slots from the study plan
     const extractTimeSlots = (plan) => {
+        if (!plan) return;  //to prevent errors if study plan is empty
+
         let extractedSlots = [];
-        const lines = plan.split("\n");
+        const lines = plan.split("\n");  //split plan into lines
 
         lines.forEach((line) => {
             const match = line.match(/(\d{1,2}:\d{2} [APM]+) - (\d{1,2}:\d{2} [APM]+)/);
@@ -47,69 +46,63 @@ const StudySchedule = () => {
         setTimeSlots(extractedSlots);
     };
 
-
+    const handleDateChange = (date) => {
+        setSelectedDate(date);
+    };
 
   return (
     <>
       <Navbar /> {/* StudyBuddy Navbar */}
 
           <div className="schedule-page">
-
-              {/*Study Plan Display Section */}
-              <div className="study-plan-container">
-                  <h2>Generated Study Plan</h2>
-                  {studyPlan ? (
-                      <div className="study-plan-box">
-                          <pre>{studyPlan}</pre>
-                      </div>
-                  ) : (
-                      <p>No study plan available.</p>
-                  )}
-              </div>
-
-              
               <div className="schedule-content-wrapper">
 
                   {/* Schedule Section */}
-        <div className="schedule-container">
-          <div className="week-header">
-           
-            <span> Sun</span>
-            <span>Mon</span>
-            <span>Tue</span>
-            <span>Wed</span>
-            <span>Thu</span>
-            <span>Fri</span>
-            <span>Sat</span>
-          </div>
+                  <div className="schedule-container">
+                      {/* week header */}
+                      <div className="week-header">
+                          <span> Sun</span>
+                          <span>Mon</span>
+                          <span>Tue</span>
+                          <span>Wed</span>
+                          <span>Thu</span>
+                          <span>Fri</span>
+                          <span>Sat</span>
+                      </div>
 
-          <div className="schedule-grid">
-            <div className="time-column">
-              {Array.from({ length: 24 }, (_, i) => (
-                <div key={i} className="time-slot">
-                  {`${i}:00`}
-                </div>
-              ))}
-            </div>
+                      {/* Main Time Grid */}
+                      <div className="schedule-grid">
+                          {/*Time Column*/}
+                          <div className="time-column">
+                              {Array.from({ length: 24 }, (_, i) => (
+                                  <div key={i} className="time-slot">
+                                      {`${i}:00`}
+                                  </div>
+                              ))}
+                          </div>
 
-            <div className="schedule-content">
-              {Array.from({ length: 24 }, (_, i) => (
-                  <div key={i} className="schedule-row">
-                  { timeSlots.map((slot, index) => {
-                                  const startHour = parseInt(slot.startTime.split(":")[0]);
-                      return startHour === i ? (
-                          <div key={index} className="study-session">
-                              {slot.subject}
-                              <span>{slot.startTime} - {slot.endTime}
-                              </span>
-                              </div>
-                              ) : null;
-                              })}
-                              </div>
-              ))}
-            </div>
-          </div>
-        </div>
+                          {/* Schedule Contect - Shows study blocks */}
+                          <div className="schedule-content">
+                              {Array.from({ length: 24 }, (_, i) => (
+                                  <div key={i} className="schedule-row">
+
+                                      {/* Render study session blocks */}
+                                      {timeSlots.map((slot, index) => {
+                                          const startHour = parseInt(slot.startTime.split(":")[0]);
+
+                                          return startHour === i ? (
+                                              <div key={index} className="study-session">
+                                                  <strong>{slot.subject}</strong>   {/* show subject */}
+                                                  <span>{slot.startTime} - {slot.endTime}    {/* show time */}
+                                                  </span>
+                                              </div>
+                                          ) : null;
+                                      })}
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  </div>
 
         {/* Calendar Section */}
         <div className="calendar-section">
