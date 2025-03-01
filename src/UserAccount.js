@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 function UserAccount() {
     //Declare state variables
+    const [id, setId] = useState("");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -24,6 +25,7 @@ function UserAccount() {
         if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
             try {
                 const userData = JSON.parse(storedUser);
+                setId(userData.id || "");
                 setFirstName(userData.firstName || "");
                 setLastName(userData.lastName || "");
                 setEmail(userData.email || "");
@@ -43,6 +45,7 @@ function UserAccount() {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    id,
                     email,
                     firstName,
                     lastName,
@@ -55,7 +58,7 @@ function UserAccount() {
             if (result.success) {
                 console.log('User updated successfully');
                 // Update localStorage with new user details
-                localStorage.setItem('user', JSON.stringify({ firstName, lastName, email }));
+                localStorage.setItem('user', JSON.stringify({ id, firstName, lastName, email }));
                 alert('User information updated successfully!');
                 setIsEditingFirstName(false);
                 setIsEditingLastName(false);
@@ -71,7 +74,11 @@ function UserAccount() {
 
     const handleDeleteUser = async () => {
         try{
-            
+            if (!id || isNaN(id)) {
+                alert("Invalid user ID. Cannot delete account.");
+                return;
+            }
+
             if(window.confirm("Press Ok if you are sure you want to delete your profile.\nThis action is permanent and cannot be reversed.")){
                 const backendURL = process.env.REACT_APP_BACKEND_URL;
                 console.log("Backend URL: ", backendURL);
@@ -79,7 +86,7 @@ function UserAccount() {
                     method: 'DELETE',
                     headers: {'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        email
+                        id: parseInt(id, 10)
                     })
                 });
 

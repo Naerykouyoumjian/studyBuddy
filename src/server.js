@@ -393,7 +393,8 @@ app.post('/login', (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Login successful',
-      user: {
+        user: {
+            id: user.id,
         firstName: user.first_name,
         lastName: user.last_name,
         email: user.email,
@@ -404,7 +405,10 @@ app.post('/login', (req, res) => {
 
 // Update user info route
 app.put('/update-user', (req, res) => {
-  const { email, firstName, lastName, currentPassword, newPassword } = req.body;
+    const { id, email, firstName, lastName, currentPassword, newPassword } = req.body;
+    if (!id) {
+        return res.status(400).json({ sucess: false, message: "User ID is required." });
+    }
 
   const query = 'SELECT * FROM users WHERE email = ?';
   db.query(query, [email], async (err, results) => {
@@ -430,8 +434,8 @@ app.put('/update-user', (req, res) => {
           const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
           // Update user with new password
-          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, password_hash = ? WHERE email = ?';
-          db.query(updateQuery, [firstName, lastName, hashedPassword, email], (updateErr) => {
+          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, password_hash = ? WHERE id = ?';
+          db.query(updateQuery, [firstName, lastName, hashedPassword, id], (updateErr) => {
               if (updateErr) {
                   return res.status(500).json({ success: false, message: 'Failed to update user' });
               }
@@ -439,8 +443,12 @@ app.put('/update-user', (req, res) => {
           });
       } else {
           // Update user without changing the password
-          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ? WHERE email = ?';
-          db.query(updateQuery, [firstName, lastName, email], (updateErr) => {
+          if (!id) {
+              return res.status(400).json({ success: false, message: "User ID is required to update."})
+          }
+
+          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ? WHERE id = ?';
+          db.query(updateQuery, [firstName, lastName, id], (updateErr) => {
               if (updateErr) {
                   return res.status(500).json({ success: false, message: 'Failed to update user' });
               }
@@ -451,11 +459,14 @@ app.put('/update-user', (req, res) => {
 });
 
 app.delete('/delete-user', (req, res) =>{
-  const {email} = req.body;
-  console.log('Email: ', email);
-  const query = 'DELETE FROM users WHERE email = ?';
+    const { id } = req.body;
+    if (!id) {
+        return res.status(400).json({ success: false, message: 'User ID is required to delete an account.' });
+    }
+  //console.log('Email: ', email);
+  const query = 'DELETE FROM users WHERE id = ?';
 
-  db.query(query, [email], (err, result) =>{
+  db.query(query, [id], (err, result) =>{
       if(err){
         console.error('Error executing the delete query: ', err);
         res.status(500).json({success: false, message: 'Failed to delete user profile, please try again later'});
@@ -463,9 +474,9 @@ app.delete('/delete-user', (req, res) =>{
       }
       if(result.affectedRows === 0){
         console.error('Delete cannot be performed: The user could not be found in the database')
-        res.status(404).json({success: false, message: 'The email could not be located in our database'});
+        res.status(404).json({success: false, message: 'User account not found in our system.'});
       }else{
-        res.status(200).json({success: true, message: 'The user profile associated with email: ' + email + ' has been deleted'});
+        res.status(200).json({success: true, message: 'Your account has been successfully deleted'});
       }
   });
 });
