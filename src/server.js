@@ -279,7 +279,7 @@ app.post('/login', (req, res) => {
 
 // Update user info route
 app.put('/update-user', (req, res) => {
-  const { email, firstName, lastName, currentPassword, newPassword } = req.body;
+  const { email, firstName, lastName, currentPassword, newPassword, notificationEnabled} = req.body;
 
   const query = 'SELECT * FROM users WHERE email = ?';
   db.query(query, [email], async (err, results) => {
@@ -306,7 +306,7 @@ app.put('/update-user', (req, res) => {
 
           // Update user with new password
           const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, password_hash = ? WHERE email = ?';
-          db.query(updateQuery, [firstName, lastName, hashedPassword, email], (updateErr) => {
+          db.query(updateQuery, [firstName, lastName, hashedPassword,  notificationEnabled ? 1 : 0, email], (updateErr) => {
               if (updateErr) {
                   return res.status(500).json({ success: false, message: 'Failed to update user' });
               }
@@ -315,7 +315,7 @@ app.put('/update-user', (req, res) => {
       } else {
           // Update user without changing the password
           const updateQuery = 'UPDATE users SET first_name = ?, last_name = ? WHERE email = ?';
-          db.query(updateQuery, [firstName, lastName, email], (updateErr) => {
+          db.query(updateQuery, [firstName, lastName, notificationEnabled ? 1 : 0, email], (updateErr) => {
               if (updateErr) {
                   return res.status(500).json({ success: false, message: 'Failed to update user' });
               }
