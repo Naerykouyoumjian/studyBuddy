@@ -24,7 +24,7 @@ const Dashboard = () => {
             <div className="label">View Schedules</div>
           </div>
           <div className="card" onClick={() => navigate("/preview-todolists")}>
-            <div className="icon">&#128462;</div>
+            <div className="icon" style={{fontSize: '7.5rem'}}>&#128462;</div>
             <div className="label">View To-Do Lists</div>
           </div>
           <div className="card" onClick={() => navigate("/user-account")}>
