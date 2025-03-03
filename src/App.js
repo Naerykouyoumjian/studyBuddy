@@ -11,6 +11,9 @@ import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import Dashboard from './Dashboard';
 import StudySchedule from './StudySchedule';
+import CreateToDoList from './CreateToDoList';
+import PreviewToDoLists from './PreviewToDoLists';
+import ViewToDoList from './ViewToDoList';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -49,6 +52,9 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/study-plan" element={<StudyPlanPage />} />
                 <Route path="/study-schedule" element={<StudySchedule />} />
+                <Route path="/create-todolist" element={<CreateToDoList />} />
+                <Route path="/preview-todolists" element={<PreviewToDoLists />} />
+                <Route path="/view-todolist" element={<ViewToDoList />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </>

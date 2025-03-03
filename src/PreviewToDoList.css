@@ -1,0 +1,133 @@
+.preview-todo-container{
+    font-family: "Palanquin", sans-serif;
+    padding: 1rem;
+}
+
+.preview-todo-content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;  
+    margin: 0 auto;
+    
+}
+.header{
+    margin: 0 auto;
+    display: flex;
+}
+.section-title {
+    color: #4b0082;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    margin-right: 13rem;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 0.5rem;
+    width: fit-content;
+    white-space: nowrap;
+  }
+
+  .preview-list-section {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+  .radio-buttons{
+    font-size: 1.5rem;
+    color: #4b0082;
+    margin: 1rem;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+  }
+  .radio{
+    margin-left: 5rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .radio input{
+    margin-right: 0.5rem;
+  }
+  .lists{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem
+  }
+  .single-list {
+    
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 0.5rem;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    width: 200px;
+    height: 180px;
+    white-space: pre-wrap;
+    position: relative;
+    text-align: left;
+  }
+  
+  .single-list::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    background-image: linear-gradient(to bottom, transparent 93%, rgba(0, 0, 0, 0.1) 7%);
+    background-size: 100% 30px; 
+    pointer-events: none;
+  }
+  
+  .list-name {
+    font-weight: bold;
+  }
+  
+  .date {
+    font-size: 0.8rem;
+    line-height: 30px;
+  }
+  .view-link{
+    color:inherit;
+    text-decoration: none;
+  }
+  .view-link:hover{
+    color:inherit;
+    text-decoration: none;
+  }
+  .single-list ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    margin-bottom: 30px;
+  }
+  .task-item{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .task-item input{
+    margin: 0; 
+    width: 1rem; 
+    height: 1rem;
+}
+
+.task-item span {
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+.completed{
+  text-decoration: line-through;
+}
+.no-lists{
+  font-size: 2rem;
+  font-weight: bold;
+  white-space: nowrap;
+  align-items: center;
+}
+
+  

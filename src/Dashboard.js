@@ -15,7 +15,7 @@ const Dashboard = () => {
             <div className="icon">&#128197;</div>
             <div className="label">Create Schedule</div>
           </div>
-          <div className="card" onClick={() => alert("Create To-Do List has been pressed.\nThis feature has not been implemented yet.\nConsider checking out our User Account page instead")}>
+          <div className="card" onClick={() => alert("/create-todolist")}>
             <div className="icon">&#128221;</div>
             <div className="label">Create To-Do List</div>
           </div>
@@ -23,7 +23,7 @@ const Dashboard = () => {
             <div className="icon">&#128198;</div>
             <div className="label">View Schedules</div>
           </div>
-          <div className="card" onClick={() => alert("View To-Do Lists has been pressed.\nThis feature has not been implemented yet.\nConsider checking out our User Account page instead")}>
+          <div className="card" onClick={() => alert("/preview-todolists")}>
             <div className="icon">&#128462;</div>
             <div className="label">View To-Do Lists</div>
           </div>
