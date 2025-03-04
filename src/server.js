@@ -1,6 +1,5 @@
 require('dotenv').config();
-const AWS = require('aws-sdk');
-const ssm = new AWS.SSM({region: 'us-east-2'}); //aws region
+const { SSMClient, GetParameterCommand } = require('@aws-sdk/client-ssm'); //AWS SDK v3, newer version
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -64,8 +63,28 @@ app.post('/generate-plan', async (req, res) => {
             completion.choices[0].message &&
             completion.choices[0].message.content) {
             try {
-                const studyPlan = JSON.parse(completion.choices[0].message.content);
-                return res.status(200).json({ success: true, studyPlan });
+                // Extract the response content from OpenAI
+                let aiResponse = completion.choices[0].message.content.trim();
+
+                // Remove Markdown code block format (```json ... ```)
+                if (aiResponse.startsWith("```json")) {
+                    aiResponse = aiResponse.substring(7); // Remove first 7 characters (```json\n)
+                }
+                if (aiResponse.startsWith("```")) {
+                    aiResponse = aiResponse.substring(3); // Remove ``` if still present
+                }
+                if (aiResponse.endsWith("```")) {
+                    aiResponse = aiResponse.substring(0, aiResponse.length - 3); // Remove ending ```
+                }
+
+                try {
+                    // Parse the cleaned JSON
+                    const studyPlan = JSON.parse(aiResponse);
+                    return res.status(200).json({ success: true, studyPlan });
+                } catch (error) {
+                    console.error("Error parsing OpenAI response:", error, "Raw response:", aiResponse);
+                    return res.status(500).json({ success: false, message: "Failed to parse study plan." });
+                }
             } catch (error) {
                 console.error("Error parsing OpenAI response:", error);
                 return res.status(500).json({ success: false, message: "Failed to parse study plan." });
@@ -122,19 +141,19 @@ app.listen(PORT, error => {
     console.log(`Server is running on http://3.15.237.83:${PORT}`);
 });
 
-async function getPublicIP(){
-  const params = {
-    Name: 'StudyBuddyPublicIP',
-    WithDecryption: false
-  };
+async function getPublicIP() {
+    const ssmClient = new SSMClient({ region: 'us-east-2' });
+    const params = new GetParameterCommand({
+        Name: 'StudyBuddyPublicIP',
+        WithDecryption: false
+    });
 
-  try {
-    const data = await ssm.getParameter(params).promise();
-    return data.Parameter.Value; //return the stored IP
-  } catch (err){
-    console.error('Error fetching IP from Parameter Store: ' , err);
-   // process.exit(1);    
-  }
+    try {
+        const data = await ssmClient.send(params);
+        return data.Parameter.Value; // return the stored IP
+    } catch (err) {
+        console.error('Error fetching IP from Parameter Store: ', err);
+    }
 }
 
 getPublicIP().then(ip => {
@@ -196,7 +215,6 @@ db.query(checkQuery, [email], async (checkError, checkResult) =>{
       console.error('Error saving user to database:' , error);
       res.status(500).json(
         {success: false, message: 'Error saving user'});
-        return res.status(500).json({success: false, message: 'Error saving user to database.'});
     } 
     console.log('User saved to database:', result); //logging successful save
       res.status(200).json({ success: true, message: 'User registered successfully'});
