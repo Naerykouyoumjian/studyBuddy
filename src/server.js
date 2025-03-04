@@ -31,11 +31,12 @@ app.post('/generate-plan', async (req, res) => {
 
     try {
         //prompt for ChatGPT
-        const prompt = `You are a study plan assistant. Generate a weekly study schedule for the following inputs:\n\n` +
+        const prompt = `You are a study plan assistant. Generate a structured study schedule based on these inputs:\n\n` +
             `Subjects and priorities: ${JSON.stringify(subjects.map((sub, idx) => ({ subject: sub, priority: priorities[idx] })))}\n` +
             `Available time slots: ${JSON.stringify(timeSlots)}\n` +
             `Start date: ${startDate}, End date: ${endDate}.\n\n` +
-            `Create an organized study plan.`;
+            `Return the schedule in JSON format as an array of objects with fields: subject, startTime (HH:MM AM/PM), endTime (HH:MM AM/PM). Example:\n\n` +
+            `[\n  {"subject": "Math", "startTime": "3:00 PM", "endTime": "4:00 PM"},\n  {"subject": "History", "startTime": "8:30 AM", "endTime": "9:30 AM"}\n]`;
 
         //send the prompt to the OpenAI
         const completion = await openai.chat.completions.create({

@@ -15,35 +15,51 @@ const StudySchedule = () => {
     //state to store the extracted time slots from study plan
     const [timeSlots, setTimeSlots] = useState([]); 
 
-    //fetch the study plan from local storage when page loads
     useEffect(() => {
+        //retrieve the study plan from the local storage
         const storedPlan = localStorage.getItem("StudyPlan");
 
+        //check if the plan exists in the local storage
         if (storedPlan) {
-            const parsedPlan = JSON.parse(storedPlan);
-            setStudyPlan(parsedPlan);  //store the full plan
-            extractTimeSlots(parsedPlan); //Extract time slots when plan loads
+            try {
+                //parse the stored JSON string 
+                const parsedPlan = JSON.parse(storedPlan);
+
+                //store the full study plan in the state 
+                setStudyPlan(parsedPlan);
+
+                // Sort by start time before setting timeSlots
+                const sortedSlots = parsedPlan.sort((a, b) => {
+                    //convert time strings to date objects for accurate comparison
+                    const timeA = new Date(`01/01/2000 ${a.startTime}`);
+                    const timeB = new Date(`01/01/2000 ${b.startTime}`);
+
+                    //return the difference, to make sure the earlier time appear first in the list
+                    return timeA - timeB;
+                });
+                //store the sorted study sessions in the state
+                setTimeSlots(sortedSlots);
+            } catch (error) {
+                console.error("Error parsing stored study plan:", error);
+            }
         }
     }, []);
+
 
     //function to extract time slots from the study plan
     const extractTimeSlots = (plan) => {
         if (!plan) return;  //to prevent errors if study plan is empty
 
-        let extractedSlots = [];
-        const lines = plan.split("\n");  //split plan into lines
+        try {
+                    //parse the JSON string 
+                    const extractedSlots = JSON.parse(plan);
 
-        lines.forEach((line) => {
-            const match = line.match(/(\d{1,2}:\d{2} [APM]+) - (\d{1,2}:\d{2} [APM]+)/);
-            if (match) {
-                extractedSlots.push({
-                    startTime: match[1],
-                    endTime: match[2],
-                    subject: line.split(":")[1]?.trim() || "Study Session",
-                });
-            }
-        });
-        setTimeSlots(extractedSlots);
+                    //set the extracted slots into state
+            setTimeSlots(extractedSlots);
+
+                } catch (error) {
+                    console.error("Error parsing study plan JSON:", error);
+                }
     };
 
     const handleDateChange = (date) => {
