@@ -30,17 +30,29 @@ app.post('/generate-plan', async (req, res) => {
 
     try {
         //prompt for ChatGPT
-        const prompt = `You are a study plan assistant. Generate a study schedule in **valid JSON format** based on the following inputs:\n\n` +
-            `Subjects and priorities: ${JSON.stringify(subjects.map((sub, idx) => ({ subject: sub, priority: priorities[idx] })))}\n` +
-            `Available time slots: ${JSON.stringify(timeSlots)}\n` +
-            `Start date: ${startDate}, End date: ${endDate}.\n\n` +
-            `### Output Format:\n` +
-            `Return a JSON array of objects, each with these exact fields:\n` +
-            `- "subject": The subject name (string)\n` +
-            `- "startTime": Start time in "HH:MM AM/PM" format (string)\n` +
-            `- "endTime": End time in "HH:MM AM/PM" format (string)\n\n` +
-            `### Example Output:\n` +
-            `[\n  {"subject": "Math", "startTime": "3:00 PM", "endTime": "4:00 PM"},\n  {"subject": "History", "startTime": "8:30 AM", "endTime": "9:30 AM"}\n]`;
+        const prompt = `
+You are a study plan assistant. Generate a study schedule in **valid JSON format** based on the following inputs:
+- Subjects and priorities: ${JSON.stringify(subjects.map((sub, idx) => ({ subject: sub, priority: priorities[idx] })))}.
+- Available study hours for each day: ${JSON.stringify(timeSlots)}.
+- Start date: ${startDate}, End date: ${endDate}.
+
+### Instructions:
+- Allocate subjects based on priority, giving higher-priority subjects more time.
+- Ensure study sessions are scheduled **only on available days**.
+- Distribute subjects fairly across available time slots.
+- The output must be in JSON format structured as an array, where each entry contains:
+  - "day": The weekday name (e.g., "Monday", "Tuesday").
+  - "subject": The subject name.
+  - "startTime": Start time in "HH:MM AM/PM" format.
+  - "endTime": End time in "HH:MM AM/PM" format.
+
+### Example Output:
+[
+  { "day": "Monday", "subject": "Math", "startTime": "8:00 AM", "endTime": "9:00 AM" },
+  { "day": "Monday", "subject": "English", "startTime": "9:00 AM", "endTime": "9:30 AM" },
+  { "day": "Tuesday", "subject": "Math", "startTime": "9:00 AM", "endTime": "9:30 AM" }
+]
+`;
 
         //send the prompt to the OpenAI
         const completion = await openai.chat.completions.create({
