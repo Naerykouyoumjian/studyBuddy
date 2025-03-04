@@ -31,11 +31,16 @@ app.post('/generate-plan', async (req, res) => {
 
     try {
         //prompt for ChatGPT
-        const prompt = `You are a study plan assistant. Generate a structured study schedule based on these inputs:\n\n` +
+        const prompt = `You are a study plan assistant. Generate a study schedule in **valid JSON format** based on the following inputs:\n\n` +
             `Subjects and priorities: ${JSON.stringify(subjects.map((sub, idx) => ({ subject: sub, priority: priorities[idx] })))}\n` +
             `Available time slots: ${JSON.stringify(timeSlots)}\n` +
             `Start date: ${startDate}, End date: ${endDate}.\n\n` +
-            `Return the schedule in JSON format as an array of objects with fields: subject, startTime (HH:MM AM/PM), endTime (HH:MM AM/PM). Example:\n\n` +
+            `### Output Format:\n` +
+            `Return a JSON array of objects, each with these exact fields:\n` +
+            `- "subject": The subject name (string)\n` +
+            `- "startTime": Start time in "HH:MM AM/PM" format (string)\n` +
+            `- "endTime": End time in "HH:MM AM/PM" format (string)\n\n` +
+            `### Example Output:\n` +
             `[\n  {"subject": "Math", "startTime": "3:00 PM", "endTime": "4:00 PM"},\n  {"subject": "History", "startTime": "8:30 AM", "endTime": "9:30 AM"}\n]`;
 
         //send the prompt to the OpenAI
@@ -58,8 +63,13 @@ app.post('/generate-plan', async (req, res) => {
             completion.choices[0] &&
             completion.choices[0].message &&
             completion.choices[0].message.content) {
-            const studyPlan = completion.choices[0].message.content;
-            return res.status(200).json({ success: true, studyPlan });
+            try {
+                const studyPlan = JSON.parse(completion.choices[0].message.content);
+                return res.status(200).json({ success: true, studyPlan });
+            } catch (error) {
+                console.error("Error parsing OpenAI response:", error);
+                return res.status(500).json({ success: false, message: "Failed to parse study plan." });
+            }
         } else {
             console.error("Invalid AI response structure:", JSON.stringify(completion, null, 2));
             return res.status(500).json({ success: false, message: 'Failed to generate a valid study plan.' });
