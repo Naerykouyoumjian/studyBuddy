@@ -80,9 +80,13 @@ import { useNavigate } from 'react-router-dom';
                   body: JSON.stringify({
                       subjects: subjectList.map(sub => sub.subject),  // Send only subjects
                       priorities: subjectList.map(sub => sub.priority),
-                      timeSlots: selectedDays,
-                      startDate: selectedDate.toISOString().split('T')[0], // Format Date
-                      endDate: selectedDate.toISOString().split('T')[0] // Example: Same day for now
+                      timeSlots: selectedDays.map(slot => ({
+                          day: slot.day,
+                          fromTime: slot.fromTime,
+                          toTime: slot.toTime,
+                          date: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() +
+                              ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].indexOf(slot.day)).toISOString().split('T')[0]
+                      })),
                   }),
               });
 
@@ -183,34 +187,38 @@ import { useNavigate } from 'react-router-dom';
               </label>
               <span>From</span>
               <select className="time-dropdown">
-                {Array.from({ length: 24 }, (_, i) => (
-                  <>
-                    <option key={`${day}-from-${i}:00 AM`}>{`${i === 0 ? 12 : i}:00 AM`}</option>
-                    <option key={`${day}-from-${i}:30 AM`}>{`${i === 0 ? 12 : i}:30 AM`}</option>
-                  </>
-                ))}
-                {Array.from({ length: 12 }, (_, i) => (
-                  <>
-                    <option key={`${day}-from-${i}:00 PM`}>{`${i === 0 ? 12 : i}:00 PM`}</option>
-                    <option key={`${day}-from-${i}:30 PM`}>{`${i === 0 ? 12 : i}:30 PM`}</option>
-                  </>
-                ))}
+                      {Array.from({ length: 24 }, (_, i) => {
+                          const hour = i % 12 || 12; // Convert 0 -> 12, 13 -> 1
+                          const period = i < 12 ? "AM" : "PM";
+                          return (
+                              <>
+                                  <option key={`${day}-from-${hour}:00 ${period}`}>
+                                      {`${hour}:00 ${period}`}
+                                  </option>
+                                  <option key={`${day}-from-${hour}:30 ${period}`}>
+                                      {`${hour}:30 ${period}`}
+                                  </option>
+                              </>
+                          );
+                      })}
               </select>
               <span>to</span>
-              <select className="time-dropdown">
-                {Array.from({ length: 24 }, (_, i) => (
-                  <>
-                    <option key={`${day}-to-${i}:00 AM`}>{`${i === 0 ? 12 : i}:00 AM`}</option>
-                    <option key={`${day}-to-${i}:30 AM`}>{`${i === 0 ? 12 : i}:30 AM`}</option>
-                  </>
-                ))}
-                {Array.from({ length: 12 }, (_, i) => (
-                  <>
-                    <option key={`${day}-to-${i}:00 PM`}>{`${i === 0 ? 12 : i}:00 PM`}</option>
-                    <option key={`${day}-to-${i}:30 PM`}>{`${i === 0 ? 12 : i}:30 PM`}</option>
-                  </>
-                ))}
-              </select>
+                  <select className="time-dropdown">
+                      {Array.from({ length: 24 }, (_, i) => {
+                          const hour = i % 12 || 12; // Convert 0 -> 12, 13 -> 1
+                          const period = i < 12 ? "AM" : "PM";
+                          return (
+                              <>
+                                  <option key={`${day}-to-${hour}:00 ${period}`}>
+                                      {`${hour}:00 ${period}`}
+                                  </option>
+                                  <option key={`${day}-to-${hour}:30 ${period}`}>
+                                      {`${hour}:30 ${period}`}
+                                  </option>
+                              </>
+                          );
+                      })}
+                  </select>
             </div>
           ))}
                     <button className="generate-plan-btn"

@@ -92,6 +92,7 @@ You are a study plan assistant. Generate a study schedule in **valid JSON format
                 try {
                     // Parse the cleaned JSON
                     const studyPlan = JSON.parse(aiResponse);
+                    console.log("Generated Study Plan:", studyPlan);
                     return res.status(200).json({ success: true, studyPlan });
                 } catch (error) {
                     console.error("Error parsing OpenAI response:", error, "Raw response:", aiResponse);

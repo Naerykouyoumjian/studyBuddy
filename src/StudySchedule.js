@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './StudySchedule.css';
 import Navbar from './Navbar';
 import Calendar from 'react-calendar'; // Importing calendar package
@@ -9,19 +9,19 @@ const StudySchedule = () => {
 
     //function to convert time to 24 hours
     const convertTo24Hour = (time) => {
-        let [hours, minutes] = time.split(" ")[0].split(":");
-        const period = time.split(" ")[1];
+        let [hour, minute] = time.split(/[: ]/); // Split into components
+        const period = time.includes("PM") ? "PM" : "AM";
 
-        if (period === "PM" && hours !== "12") {
-            hours = parseInt(hours) + 12;
-        } else if (period === "AM" && hours === "12") {
-            hours = "00";
-        }
+        //convert hour to integer
+        hour = parseInt(hour, 10);
+        if (isNaN(hour)) return 0;
 
-        return `${hours}:${minutes}`;
+        //hnadle 12AM and 12PM
+        if (period === "AM" && hour === 12) hour = 0; //midnight
+        if (period === "PM" && hour !== 12) hour += 12; //Convert pm times
+
+        return hour * 60 + parseInt(minute);
     };
-
-
 
     //state to manage selected date on the calendar
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -29,65 +29,67 @@ const StudySchedule = () => {
     //state to store the retrieved study plan
     const [studyPlan, setStudyPlan] = useState(null);
 
-    //state to store the extracted time slots from study plan
-    const [timeSlots, setTimeSlots] = useState([]); 
+    //Memorized study Schedule
+    const groupedTimeSlots = useMemo(() => {
+        if (!studyPlan) return {};
+
+        // Sort by start time before setting timeSlots
+        const sortedSlots = [...(studyPlan || [])].sort((a, b) =>
+            convertTo24Hour(a.startTime) - convertTo24Hour(b.startTime)
+        );
+
+        //group by day
+        return sortedSlots.reduce((acc, session) => {
+            const sessionDate = new Date(session.date);  // Ensure each session has an actual date
+            const formattedDate = sessionDate.toISOString().split('T')[0]; // Format YYYY-MM-DD
+
+            if (!acc[formattedDate]) acc[formattedDate] = [];
+            acc[formattedDate].push(session);
+            return acc;
+        }, {});
+
 
     useEffect(() => {
         //retrieve the study plan from the local storage
         const storedPlan = localStorage.getItem("StudyPlan");
 
-        //check if the plan exists in the local storage
-        if (storedPlan) {
+        //check if stored plan is empty or null
+        if (!storedPlan || storedPlan.trim() === "") {
+            console.warn("No stored study plan found.");
+            return;
+        }
+
             try {
                 //parse the stored JSON string 
                 const parsedPlan = JSON.parse(storedPlan);
+                console.log("Loaded study plan from storage:", parsedPlan); //debug
 
                 //store the full study plan in the state 
                 setStudyPlan(parsedPlan);
 
-                // Sort by start time before setting timeSlots
-                const sortedSlots = parsedPlan.sort((a, b) => {
-                    //convert time strings to date objects for accurate comparison
-                    const timeA = new Date(`01/01/2000 ${convertTo24Hour(a.startTime)}`);
-                    const timeB = new Date(`01/01/2000 ${convertTo24Hour(b.startTime)}`);
-                    //return the difference, to make sure the earlier time appear first in the list
-                    return timeA - timeB;
-                });
-                    
-                // Group study sessions by day
-                const groupedSlots = sortedSlots.reduce((acc, session) => {
-                    if (!acc[session.day]) {
-                        acc[session.day] = [];
-                    }
-                    acc[session.day].push(session);
-                    return acc;
-                }, {});
-
-                // Store grouped sessions by day
-                setTimeSlots(groupedSlots);
-
-            } catch (error) {
+                } catch (error) {
                 console.error("Error parsing stored study plan:", error);
-            }
         }
+
+        console.log("Loaded study plan:", studyPlan);
     }, []);
 
-
+     ////might need later
     //function to extract time slots from the study plan
-    const extractTimeSlots = (plan) => {
-        if (!plan) return;  //to prevent errors if study plan is empty
+    //const extractTimeSlots = (plan) => {
+    //    if (!plan) return;  //to prevent errors if study plan is empty
 
-        try {
-                    //parse the JSON string 
-                    const extractedSlots = JSON.parse(plan);
+    //    try {
+    //                //parse the JSON string 
+    //                const extractedSlots = JSON.parse(plan);
 
-                    //set the extracted slots into state
-            setTimeSlots(extractedSlots);
+    //                //set the extracted slots into state
+    //        setTimeSlots(extractedSlots);
 
-                } catch (error) {
-                    console.error("Error parsing study plan JSON:", error);
-                }
-    };
+    //            } catch (error) {
+    //                console.error("Error parsing study plan JSON:", error);
+    //            }
+    //};
 
     const handleDateChange = (date) => {
         setSelectedDate(date);
@@ -113,17 +115,25 @@ const StudySchedule = () => {
                       </div>
 
                       <div className="schedule-grid">
-                          {Object.keys(timeSlots)
-                              .filter((day) => timeSlots[day].length > 0)  // ensures only non-empty days are shown
+                          {Object.keys(groupedTimeSlots)
+                              .filter((day) => groupedTimeSlots[day].length > 0)  // ensures only non-empty days are shown
                               .map((day) => (
                                   <div key={day} className="schedule-day">
-                                      <h3>{day}</h3>
+                                      <h3>{new Date(day).toLocaleDateString()}</h3>
                                       <div className="schedule-content">
                                           {Array.from({ length: 24 }, (_, i) => (
                                               <div key={i} className="schedule-row">
-                                                  {timeSlots[day].map((slot, index) => {
-                                                      const startHour = parseInt(slot.startTime.match(/\d+/)[0]); 
-                                                      return startHour === i ? (
+                                                  {groupedTimeSlots[day]?.map((slot, index) => {
+                                                      if (!slot.startTime) return null;
+
+                                                      const [startHour] = slot.startTime.split(/[: ]/);
+                                                      let formattedStartTime = parseInt(startHour, 10);
+
+                                                      if (slot.startTime.includes("AM") && formattedStartTime === 12) formattedStartTime = 0;
+                                                      if (slot.startTime.includes("PM") && formattedStartTime !== 12) formattedStartTime +=12;
+
+
+                                                      return formattedStartTime === i ? (
                                                           <div key={index} className="study-session">
                                                               <strong>{slot.subject}</strong>
                                                               <span>{slot.startTime} - {slot.endTime}</span>
