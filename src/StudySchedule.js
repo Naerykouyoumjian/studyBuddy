@@ -55,16 +55,13 @@ const StudySchedule = () => {
 
         //group by day
         return sortedSlots.reduce((acc, session) => {
-            if (!session.date) {
-                console.error("Invalid session date:", session); // Debug
-                return acc; // Skip, if date is missing
+
+            if (!session.date || isNaN(new Date(session.date).getTime())) {
+                console.error("Skipping invalid session date:", session);
+                return acc; // Skip this session if no valid date exists.
             }
 
             const sessionDate = new Date(session.date);
-            if (isNaN(sessionDate.getTime())) {
-                console.error("Invalid Date Object:", session.date);
-                return acc; // Skip invalid date
-            }
 
             const formattedDate = sessionDate.toISOString().split('T')[0]; //Only valid dates get processed
 
@@ -92,13 +89,10 @@ const StudySchedule = () => {
                 console.log("Loaded study plan from storage:", parsedPlan); //debug
 
                 //store the full study plan in the state 
-                setStudyPlan(parsedPlan);
-
+                setStudyPlan([...parsedPlan]);
                 } catch (error) {
                 console.error("Error parsing stored study plan:", error);
         }
-
-        console.log("Loaded study plan:", studyPlan);
     }, []);
 
      ////might need later
