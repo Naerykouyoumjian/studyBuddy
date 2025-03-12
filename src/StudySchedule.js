@@ -34,7 +34,7 @@ const StudySchedule = () => {
             hour = 12; // Midnight case
         }
 
-        return `${hour}:${minute} ${period}`;
+        return `${hour}:${minute.padStart(2, '0')} ${period}`;
     };
 
     //state to manage selected date on the calendar
@@ -55,12 +55,24 @@ const StudySchedule = () => {
 
         //group by day
         return sortedSlots.reduce((acc, session) => {
-            const sessionDate = new Date(session.date);  // Ensure each session has an actual date
-            const formattedDate = sessionDate.toISOString().split('T')[0]; // Format YYYY-MM-DD
+            if (!session.date) {
+                console.error("Invalid session date:", session); // Debug
+                return acc; // Skip, if date is missing
+            }
+
+            const sessionDate = new Date(session.date);
+            if (isNaN(sessionDate.getTime())) {
+                console.error("Invalid Date Object:", session.date);
+                return acc; // Skip invalid date
+            }
+
+            const formattedDate = sessionDate.toISOString().split('T')[0]; //Only valid dates get processed
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
             acc[formattedDate].push(session);
             return acc;
+
+
         }, {});
     }, [studyPlan]);
 
