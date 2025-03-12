@@ -91,13 +91,18 @@ const generateTimeOptions = () => {
                   body: JSON.stringify({
                       subjects: subjectList.map(sub => sub.subject),  // Send only subjects
                       priorities: subjectList.map(sub => sub.priority),
-                      timeSlots: selectedDays.map(slot => ({
-                          day: slot.day,
-                          fromTime: slot.fromTime,
-                          toTime: slot.toTime,
-                          date: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() +
-                              ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].indexOf(slot.day)).toISOString().split('T')[0]
-                      })),
+                      timeSlots: selectedDays.map(slot => {
+                          const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(slot.day);
+                          const selectedDay = new Date(selectedDate);
+                          selectedDay.setDate(selectedDate.getDate() + ((dayIndex - selectedDate.getDay() + 7) % 7));
+
+                          return{
+                              day: slot.day,
+                              fromTime: slot.fromTime,
+                              toTime: slot.toTime,
+                              date: selectedDay.toISOString().split('T')[0]
+                              };
+                      }),
                   }),
               });
 
@@ -130,6 +135,7 @@ const generateTimeOptions = () => {
               //store the study plan in local storage before navigating
               console.log("Storing Study Plan in local storage:", data.studyPlan);
               localStorage.setItem("StudyPlan", JSON.stringify(data.studyPlan));
+              console.log("Verifying stored Study Plan:", localStorage.getItem("StudyPlan"));
 
               //navigate to the studySchedule page
               navigate("/study-schedule");

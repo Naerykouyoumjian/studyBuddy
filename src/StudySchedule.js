@@ -62,34 +62,30 @@ const StudySchedule = () => {
             }
 
             const sessionDate = new Date(session.date);
-
-            const formattedDate = sessionDate.toISOString().split('T')[0]; //Only valid dates get processed
+            const formattedDate = sessionDate.toISOString().split('T')[0];
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
             acc[formattedDate].push(session);
             return acc;
-
-
-        }, {});
+            }, {});
     }, [studyPlan]);
 
     useEffect(() => {
         //retrieve the study plan from the local storage
         const storedPlan = localStorage.getItem("StudyPlan");
-
-        //check if stored plan is empty or null
         if (!storedPlan || storedPlan.trim() === "") {
             console.warn("No stored study plan found.");
             return;
         }
-
-            try {
+                try {
                 //parse the stored JSON string 
                 const parsedPlan = JSON.parse(storedPlan);
-                console.log("Loaded study plan from storage:", parsedPlan); //debug
-
-                //store the full study plan in the state 
-                setStudyPlan([...parsedPlan]);
+                    console.log("Loaded study plan from storage:", parsedPlan); //debug
+                    if (Array.isArray(parsedPlan)) {
+                        setStudyPlan(parsedPlan);
+                    } else {
+                        console.error("Invalid study plan format:", parsedPlan);
+                    }
                 } catch (error) {
                 console.error("Error parsing stored study plan:", error);
         }
@@ -144,15 +140,14 @@ const StudySchedule = () => {
                                       <div className="schedule-content">
                                           {Array.from({ length: 24 }, (_, i) => (
                                               <div key={i} className="schedule-row">
+                                                  <span className="time-label">{9 + i}:00</span>
                                                   {groupedTimeSlots[day]?.map((slot, index) => {
-                                                      if (!slot.startTime) return null;
-                                                      // Convert minutes to hour
-                                                      const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60); 
-
-                                                      return formattedStartTime === i ? (
+                                                      const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
+                                                      return formattedStartTime === (9 + i) ? (
                                                           <div key={index} className="study-session">
                                                               <strong>{slot.subject}</strong>
-                                                              <span>{convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}</span>                                                          </div>
+                                                              <span>{convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}</span>
+                                                          </div>                                                          
                                                       ) : null;
                                                   })}
                                               </div>
