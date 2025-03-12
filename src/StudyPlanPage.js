@@ -5,6 +5,17 @@ import 'react-calendar/dist/Calendar.css';
 import './StudyPlanPage.css';
 import { useNavigate } from 'react-router-dom';
 
+const generateTimeOptions = () => {
+    const options = [];
+    for (let i = 0; i < 24; i++) {
+        const hour = i % 12 || 12; // Convert 0 -> 12, 13 -> 1
+        const period = i < 12 ? "AM" : "PM";
+        options.push(`${hour}:00 ${period}`);
+        options.push(`${hour}:30 ${period}`);
+    }
+    return options;
+};
+
   const StudyPlanPage = () => {
       const [selectedDate, setSelectedDate] = useState(new Date());
       const [subject, setSubject] = useState('');
@@ -187,37 +198,15 @@ import { useNavigate } from 'react-router-dom';
               </label>
               <span>From</span>
               <select className="time-dropdown">
-                      {Array.from({ length: 24 }, (_, i) => {
-                          const hour = i % 12 || 12; // Convert 0 -> 12, 13 -> 1
-                          const period = i < 12 ? "AM" : "PM";
-                          return (
-                              <>
-                                  <option key={`${day}-from-${hour}:00 ${period}`}>
-                                      {`${hour}:00 ${period}`}
-                                  </option>
-                                  <option key={`${day}-from-${hour}:30 ${period}`}>
-                                      {`${hour}:30 ${period}`}
-                                  </option>
-                              </>
-                          );
-                      })}
+                          {generateTimeOptions().map((time, index) => (
+                              <option key={index}>{time}</option>
+                          ))}
               </select>
               <span>to</span>
                   <select className="time-dropdown">
-                      {Array.from({ length: 24 }, (_, i) => {
-                          const hour = i % 12 || 12; // Convert 0 -> 12, 13 -> 1
-                          const period = i < 12 ? "AM" : "PM";
-                          return (
-                              <>
-                                  <option key={`${day}-to-${hour}:00 ${period}`}>
-                                      {`${hour}:00 ${period}`}
-                                  </option>
-                                  <option key={`${day}-to-${hour}:30 ${period}`}>
-                                      {`${hour}:30 ${period}`}
-                                  </option>
-                              </>
-                          );
-                      })}
+                          {generateTimeOptions().map((time, index) => (
+                              <option key={index}>{time}</option>
+                          ))}
                   </select>
             </div>
           ))}

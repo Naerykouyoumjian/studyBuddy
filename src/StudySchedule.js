@@ -7,20 +7,34 @@ import 'react-calendar/dist/Calendar.css';
 
 const StudySchedule = () => {
 
-    //function to convert time to 24 hours
     const convertTo24Hour = (time) => {
-        let [hour, minute] = time.split(/[: ]/); // Split into components
-        const period = time.includes("PM") ? "PM" : "AM";
-
-        //convert hour to integer
+        let [hour, minute] = time.split(/[: ]/);
         hour = parseInt(hour, 10);
-        if (isNaN(hour)) return 0;
 
-        //hnadle 12AM and 12PM
-        if (period === "AM" && hour === 12) hour = 0; //midnight
-        if (period === "PM" && hour !== 12) hour += 12; //Convert pm times
+        if (time.includes("PM") && hour !== 12) {
+            hour += 12;
+        } else if (time.includes("AM") && hour === 12) {
+            hour = 0; // Midnight case
+        }
 
         return hour * 60 + parseInt(minute);
+    };
+
+
+    //function to convert time to 24 hours
+    const convertToAMPM = (time) => {
+        let [hour, minute] = time.split(":");
+        hour = parseInt(hour, 10);
+
+        let period = "AM";
+        if (hour >= 12) {
+            period = "PM";
+            if (hour > 12) hour -= 12;
+        } else if (hour === 0) {
+            hour = 12; // Midnight case
+        }
+
+        return `${hour}:${minute} ${period}`;
     };
 
     //state to manage selected date on the calendar
@@ -38,6 +52,7 @@ const StudySchedule = () => {
             convertTo24Hour(a.startTime) - convertTo24Hour(b.startTime)
         );
 
+
         //group by day
         return sortedSlots.reduce((acc, session) => {
             const sessionDate = new Date(session.date);  // Ensure each session has an actual date
@@ -47,7 +62,7 @@ const StudySchedule = () => {
             acc[formattedDate].push(session);
             return acc;
         }, {});
-
+    }, [studyPlan]);
 
     useEffect(() => {
         //retrieve the study plan from the local storage
@@ -125,19 +140,13 @@ const StudySchedule = () => {
                                               <div key={i} className="schedule-row">
                                                   {groupedTimeSlots[day]?.map((slot, index) => {
                                                       if (!slot.startTime) return null;
-
-                                                      const [startHour] = slot.startTime.split(/[: ]/);
-                                                      let formattedStartTime = parseInt(startHour, 10);
-
-                                                      if (slot.startTime.includes("AM") && formattedStartTime === 12) formattedStartTime = 0;
-                                                      if (slot.startTime.includes("PM") && formattedStartTime !== 12) formattedStartTime +=12;
-
+                                                      // Convert minutes to hour
+                                                      const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60); 
 
                                                       return formattedStartTime === i ? (
                                                           <div key={index} className="study-session">
                                                               <strong>{slot.subject}</strong>
-                                                              <span>{slot.startTime} - {slot.endTime}</span>
-                                                          </div>
+                                                              <span>{convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}</span>                                                          </div>
                                                       ) : null;
                                                   })}
                                               </div>
