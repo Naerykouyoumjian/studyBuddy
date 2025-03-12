@@ -45,24 +45,27 @@ const StudySchedule = () => {
 
     //Memorized study Schedule
     const groupedTimeSlots = useMemo(() => {
-        if (!studyPlan) return {};
-                console.log("Processing groupTimedSlots from studyPlan:", studyPlan);
+        if (!studyPlan || studyPlan.length === 0) return {};
+        console.log("Processing groupTimedSlots from studyPlan:", studyPlan);
+
+        //check if the study plan contains valid date values
+        const validSlots = studyPlan.filter(session => session.date && !isNaN(new Date(session.date).getTime()));
+
+        if (validSlots.length === 0) {
+            console.error("No valid sessions found in study plan.");
+            return {};
+        }
 
         // Sort by start time before setting timeSlots
-        const sortedSlots = [...studyPlan].sort((a, b) =>
+        const sortedSlots = [...validSlots].sort((a, b) =>
             convertTo24Hour(a.startTime) - convertTo24Hour(b.startTime)
         );
 
         //group by day
         return sortedSlots.reduce((acc, session) => {
-
-            if (!session.date || isNaN(new Date(session.date).getTime())) {
-                console.error("Skipping invalid session (missing date):", session);
-                return acc;
-            }
-
             const sessionDate = new Date(session.date);
             const formattedDate = sessionDate.toISOString().split('T')[0];
+
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
             acc[formattedDate].push(session);
@@ -82,7 +85,7 @@ const StudySchedule = () => {
                 //parse the stored JSON string 
                 const parsedPlan = JSON.parse(storedPlan);
                     console.log("Loaded study plan from storage:", parsedPlan); //debug
-                    if (Array.isArray(parsedPlan) ) {
+                    if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.date)) {
                         setStudyPlan(parsedPlan);
                         console.log("Updated studyPlan state:", parsedPlan);
                     } else {

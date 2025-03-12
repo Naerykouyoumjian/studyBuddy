@@ -71,14 +71,25 @@ const generateTimeOptions = () => {
                   const fromTime = row.querySelector('.time-dropdown:first-of-type').value;
                   const toTime = row.querySelector('.time-dropdown:last-of-type').value;
 
+                  
+                  //if (fromTime === toTime) {
+                  //    alert(`Invalid time range for ${dayText}. Please select different start and end times.`);
+                  //    return;
+                  //}
+
                   const dayText = checkbox.parentNode.textContent.trim();
+                  const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayText);
+                  const selectedDay = new Date(selectedDate);
+                  selectedDay.setDate(selectedDate.getDate() + ((dayIndex - selectedDate.getDay() + 7) % 7));
 
-                  if (fromTime === toTime) {
-                      alert(`Invalid time range for ${dayText}. Please select different start and end times.`);
-                      return;
-                  }
+                  const formattedDate = selectedDay.toISOString().split('T')[0];
 
-                  selectedDays.push({ day: dayText, fromTime, toTime });
+                  selectedDays.push({
+                      day: dayText,
+                      date: formattedDate,
+                      fromTime,
+                      toTime
+                  });
               }
           });
 
@@ -91,22 +102,12 @@ const generateTimeOptions = () => {
                   body: JSON.stringify({
                       subjects: subjectList.map(sub => sub.subject),  // Send only subjects
                       priorities: subjectList.map(sub => sub.priority),
-                      timeSlots: selectedDays.map(slot => {
-                          const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(slot.day);
-                          const selectedDay = new Date(selectedDate);
-                          selectedDay.setDate(selectedDate.getDate() + ((dayIndex - selectedDate.getDay() + 7) % 7));
-
-                          const formattedDate = selectedDay.toISOString().split('T')[0]; 
-
-                          console.log(`Processed Date for ${slot.day}:`, formattedDate); // Debug
-
-                          return{
-                              day: slot.day,
-                              fromTime: slot.fromTime,
-                              toTime: slot.toTime,
-                              date: formattedDate,
-                              };
-                      }),
+                      timeSlots: selectedDays.map(slot => ({
+                          day: slot.day,
+                          date: slot.date,  
+                          fromTime: slot.fromTime,
+                          toTime: slot.toTime
+                      })),
                   }),
               });
 
@@ -129,8 +130,7 @@ const generateTimeOptions = () => {
 
               //debug
               console.log("Full AI Response:", data);
-              console.log("Study plan from AI before saving:", data.studyPlan);
-
+           
               if (!data.studyPlan) {
                   console.log("Unexpected AI response format: ", data);
                   alert("Error: AI response is missing the study plan. Please try again later.");
@@ -138,9 +138,15 @@ const generateTimeOptions = () => {
               }
 
               //store the study plan in local storage before navigating
-              console.log("Storing Study Plan in local storage:", data.studyPlan);
+              console.log("Storing Study Plan in local storage:", JSON.stringify(data.studyPlan));
               localStorage.setItem("StudyPlan", JSON.stringify(data.studyPlan));
               console.log("Verifying stored Study Plan in localStorage:", localStorage.getItem("StudyPlan"));
+
+              if (!localStorage.getItem("StudyPlan") || localStorage.getItem("StudyPlan") === "[]") {
+                  console.error("Study plan not properly saved in localStorage.");
+              } else {
+                  console.log("Study plan successfully saved.");
+              }
 
               //navigate to the studySchedule page
               navigate("/study-schedule");
