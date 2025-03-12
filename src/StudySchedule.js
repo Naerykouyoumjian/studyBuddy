@@ -45,23 +45,29 @@ const StudySchedule = () => {
 
     //Memorized study Schedule
     const groupedTimeSlots = useMemo(() => {
-        if (!studyPlan) return {};
+        if (!studyPlan || !Array.isArray(studyPlan)) return {};
+
+        console.log("Processing Stuy Plan in useMemo:", studyPlan);
 
         // Sort by start time before setting timeSlots
-        const sortedSlots = [...(studyPlan || [])].sort((a, b) =>
+        const sortedSlots = [...studyPlan].sort((a, b) =>
             convertTo24Hour(a.startTime) - convertTo24Hour(b.startTime)
         );
-
 
         //group by day
         return sortedSlots.reduce((acc, session) => {
 
-            if (!session.date || isNaN(new Date(session.date).getTime())) {
-                console.error("Skipping invalid session date:", session);
-                return acc; // Skip this session if no valid date exists.
+            if (!session.date) {
+                console.error("Skipping invalid session (missing date):", session);
+                return acc;
             }
 
             const sessionDate = new Date(session.date);
+            if (isNaN(sessionDate.getTime())) {
+                console.error("Invalid Date Object:", session.date);
+                return acc;
+            }
+
             const formattedDate = sessionDate.toISOString().split('T')[0];
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
@@ -69,6 +75,8 @@ const StudySchedule = () => {
             return acc;
             }, {});
     }, [studyPlan]);
+
+    console.log("Grouped Time Slots: ", groupedTimeSlots);
 
     useEffect(() => {
         //retrieve the study plan from the local storage
@@ -81,7 +89,7 @@ const StudySchedule = () => {
                 //parse the stored JSON string 
                 const parsedPlan = JSON.parse(storedPlan);
                     console.log("Loaded study plan from storage:", parsedPlan); //debug
-                    if (Array.isArray(parsedPlan)) {
+                    if (Array.isArray(parsedPlan) && parsedPlan.length > 0) {
                         setStudyPlan(parsedPlan);
                     } else {
                         console.error("Invalid study plan format:", parsedPlan);
