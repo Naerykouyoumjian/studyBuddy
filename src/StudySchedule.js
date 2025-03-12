@@ -45,9 +45,8 @@ const StudySchedule = () => {
 
     //Memorized study Schedule
     const groupedTimeSlots = useMemo(() => {
-        if (!studyPlan || !Array.isArray(studyPlan)) return {};
-
-        console.log("Processing Stuy Plan in useMemo:", studyPlan);
+        if (!studyPlan) return {};
+                console.log("Processing groupTimedSlots from studyPlan:", studyPlan);
 
         // Sort by start time before setting timeSlots
         const sortedSlots = [...studyPlan].sort((a, b) =>
@@ -57,17 +56,12 @@ const StudySchedule = () => {
         //group by day
         return sortedSlots.reduce((acc, session) => {
 
-            if (!session.date) {
+            if (!session.date || isNaN(new Date(session.date).getTime())) {
                 console.error("Skipping invalid session (missing date):", session);
                 return acc;
             }
 
             const sessionDate = new Date(session.date);
-            if (isNaN(sessionDate.getTime())) {
-                console.error("Invalid Date Object:", session.date);
-                return acc;
-            }
-
             const formattedDate = sessionDate.toISOString().split('T')[0];
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
@@ -75,7 +69,6 @@ const StudySchedule = () => {
             return acc;
             }, {});
     }, [studyPlan]);
-
     console.log("Grouped Time Slots: ", groupedTimeSlots);
 
     useEffect(() => {
@@ -89,8 +82,9 @@ const StudySchedule = () => {
                 //parse the stored JSON string 
                 const parsedPlan = JSON.parse(storedPlan);
                     console.log("Loaded study plan from storage:", parsedPlan); //debug
-                    if (Array.isArray(parsedPlan) && parsedPlan.length > 0) {
+                    if (Array.isArray(parsedPlan) ) {
                         setStudyPlan(parsedPlan);
+                        console.log("Updated studyPlan state:", parsedPlan);
                     } else {
                         console.error("Invalid study plan format:", parsedPlan);
                     }

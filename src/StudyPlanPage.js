@@ -96,11 +96,15 @@ const generateTimeOptions = () => {
                           const selectedDay = new Date(selectedDate);
                           selectedDay.setDate(selectedDate.getDate() + ((dayIndex - selectedDate.getDay() + 7) % 7));
 
+                          const formattedDate = selectedDay.toISOString().split('T')[0]; 
+
+                          console.log(`Processed Date for ${slot.day}:`, formattedDate); // Debug
+
                           return{
                               day: slot.day,
                               fromTime: slot.fromTime,
                               toTime: slot.toTime,
-                              date: selectedDay.toISOString().split('T')[0]
+                              date: formattedDate,
                               };
                       }),
                   }),
@@ -125,6 +129,7 @@ const generateTimeOptions = () => {
 
               //debug
               console.log("Full AI Response:", data);
+              console.log("Study plan from AI before saving:", data.studyPlan);
 
               if (!data.studyPlan) {
                   console.log("Unexpected AI response format: ", data);
@@ -135,7 +140,7 @@ const generateTimeOptions = () => {
               //store the study plan in local storage before navigating
               console.log("Storing Study Plan in local storage:", data.studyPlan);
               localStorage.setItem("StudyPlan", JSON.stringify(data.studyPlan));
-              console.log("Verifying stored Study Plan:", localStorage.getItem("StudyPlan"));
+              console.log("Verifying stored Study Plan in localStorage:", localStorage.getItem("StudyPlan"));
 
               //navigate to the studySchedule page
               navigate("/study-schedule");
