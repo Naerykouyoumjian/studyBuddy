@@ -100,10 +100,6 @@ const generateTimeOptions = () => {
               timeSlots: selectedDays
           }, null, 2));
 
-          if (selectedDays.length === 0) {
-              alert("Please select at least one day with a time slot.");
-              return;
-          }
 
           try {
               const response = await fetch("http://3.15.237.83:3001/generate-plan", {
@@ -114,7 +110,7 @@ const generateTimeOptions = () => {
                   body: JSON.stringify({
                       subjects: subjectList.map(sub => sub.subject),  // Send only subjects
                       priorities: subjectList.map(sub => sub.priority),
-                      timeSlots: selectedDays
+                      timeSlots: selectedDays,
                       }),
               });
 
@@ -138,30 +134,27 @@ const generateTimeOptions = () => {
               //debug
               console.log("Full AI Response:", data);
            
-              if (!data.studyPlan || data.studyPlan.length === 0) {
-                  console.error("AI response is missing the study plan. Please try again later.");
-                  alert("Error: AI response is empty. Please try again.");
+              if (!data.studyPlan || !Array.isArray(data.studyPlan)) {
+                  console.log("Unexpected AI response format: ", data);
+                  alert("Error: AI response is missing the study plan. Please try again later.");
                   return;
               }
 
-              // Debug
-              console.log("Study plan from AI before saving:", data.studyPlan);
+              const formattedStudyPlan = data.studyPlan.map(session => ({
+                  ...session,
+                  date: selectedDays.find(day => day.day === session.day)?.date || null // Assign correct date
+              }));
 
-              // Store the study plan in local storage before navigating
-              localStorage.setItem("StudyPlan", JSON.stringify(data.studyPlan));
+              console.log("Storing Study Plan in local storage:", JSON.stringify(formattedStudyPlan));
+              localStorage.setItem("StudyPlan", JSON.stringify(formattedStudyPlan));
 
+              console.log("Verifying stored Study Plan in localStorage:", localStorage.getItem("StudyPlan"));
 
-              // Debug
-              const storedPlan = localStorage.getItem("StudyPlan");
-              console.log("Verifying stored Study Plan in localStorage:", storedPlan);
-
-              if (!storedPlan || storedPlan === "[]" || storedPlan === "null") {
+              if (!localStorage.getItem("StudyPlan") || localStorage.getItem("StudyPlan") === "[]") {
                   console.error("Study plan not properly saved in localStorage.");
-                  alert("Study plan was not saved correctly. Please try again.");
-                  return;
+              } else {
+                  console.log("Study plan successfully saved.");
               }
-
-              console.log("Study plan successfully saved.");
 
               // Navigate to the studySchedule page
               navigate("/study-schedule");
