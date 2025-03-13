@@ -63,8 +63,7 @@ const StudySchedule = () => {
 
         //group by day
         return sortedSlots.reduce((acc, session) => {
-            const sessionDate = new Date(session.date);
-            const formattedDate = sessionDate.toISOString().split('T')[0];
+            const formattedDate = session.day;
 
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
@@ -85,7 +84,7 @@ const StudySchedule = () => {
                 //parse the stored JSON string 
                 const parsedPlan = JSON.parse(storedPlan);
                     console.log("Loaded study plan from storage:", parsedPlan); //debug
-                    if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.date)) {
+                    if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.day && entry.startTime && entry.endTime)) {
                         setStudyPlan(parsedPlan);
                         console.log("Updated studyPlan state:", parsedPlan);
                     } else {
