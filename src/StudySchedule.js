@@ -8,13 +8,18 @@ import 'react-calendar/dist/Calendar.css';
 const StudySchedule = () => {
 
     const convertTo24Hour = (time) => {
-        let [hour, minute] = time.split(/[: ]/);
+        if (!time || typeof time !== "string") return 0;
+
+        const match = time.match(/(\d{1,2}):(\d{2})\s?(AM|PM)?/i);
+        if (!match) return 0; // Return 0 if time is invalid
+
+        let [_, hour, minute, period] = match;
         hour = parseInt(hour, 10);
 
-        if (time.includes("PM") && hour !== 12) {
+        if (period?.toUpperCase() === "PM" && hour !== 12) {
             hour += 12;
-        } else if (time.includes("AM") && hour === 12) {
-            hour = 0; // Midnight case
+        } else if (period?.toUpperCase() === "AM" && hour === 12) {
+            hour = 0;
         }
 
         return hour * 60 + parseInt(minute);
@@ -23,6 +28,8 @@ const StudySchedule = () => {
 
     //function to convert time to 24 hours
     const convertToAMPM = (time) => {
+        if (!time || typeof time !== "string" || !time.includes(":")) return "Invalid Time";
+
         let [hour, minute] = time.split(":");
         hour = parseInt(hour, 10);
 
@@ -34,7 +41,7 @@ const StudySchedule = () => {
             hour = 12; // Midnight case
         }
 
-        return `${hour}:${minute.padStart(2, '0')} ${period}`;
+        return `${hour}:${String(minute).padStart(2, '0')} ${period}`;
     };
 
     //state to manage selected date on the calendar
@@ -71,19 +78,14 @@ const StudySchedule = () => {
                 return acc;
             }
 
-            const formattedDate = sessionDate.toLocaleDateString(undefined, {
-                weekday: 'long', // e.g., "Monday"
-                month: 'short',  // e.g., "Mar"
-                day: 'numeric'   // e.g., "18"
-            });
-
+            const formattedDate = sessionDate.toISOString().split('T')[0];
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
             acc[formattedDate].push(session);
             return acc;
             }, {});
     }, [studyPlan]);
-    console.log("Grouped Time Slots: ", groupedTimeSlots);
+
 
     useEffect(() => {
         //retrieve the study plan from the local storage
@@ -106,6 +108,10 @@ const StudySchedule = () => {
                 console.error("Error parsing stored study plan:", error);
         }
     }, []);
+
+    useEffect(() => {
+        console.log("Grouped Time Slots Updated: ", groupedTimeSlots);
+    }, [studyPlan]);
 
      ////might need later
     //function to extract time slots from the study plan
@@ -152,14 +158,15 @@ const StudySchedule = () => {
                               .filter((day) => groupedTimeSlots[day].length > 0)  // ensures only non-empty days are shown
                               .map((day) => (
                                   <div key={day} className="schedule-day">
-                                      <h3>{new Date(day).toLocaleDateString()}</h3>
+                                      <h3>{day}</h3>
                                       <div className="schedule-content">
                                           {Array.from({ length: 24 }, (_, i) => (
                                               <div key={i} className="schedule-row">
                                                   <span className="time-label">{9 + i}:00</span>
                                                   {groupedTimeSlots[day]?.map((slot, index) => {
                                                       const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
-                                                      return formattedStartTime === (9 + i) ? (
+                                                      const formattedEndTime = Math.floor(convertTo24Hour(slot.endTime) / 60);
+                                                      return formattedStartTime <= (9 + i) && formattedEndTime > (9 + i) ? (
                                                           <div key={index} className="study-session">
                                                               <strong>{slot.subject}</strong>
                                                               <span>{convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}</span>
