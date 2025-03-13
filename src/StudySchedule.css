@@ -55,9 +55,11 @@
 }
 
 .schedule-grid {
+  min-height: 400px !important;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(10, 1fr);
+  grid-template-rows: repeat(10, minmax(50px, auto));
+  gap: 5px;
   border: 1px solid #ddd;
 }
 
