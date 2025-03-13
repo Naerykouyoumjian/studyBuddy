@@ -63,7 +63,19 @@ const StudySchedule = () => {
 
         //group by day
         return sortedSlots.reduce((acc, session) => {
-            const formattedDate = session.day;
+
+            const sessionDate = new Date(session.date);
+
+            if (isNaN(sessionDate.getTime())) {
+                console.error("Invalid date format:", session.date);
+                return acc;
+            }
+
+            const formattedDate = sessionDate.toLocaleDateString(undefined, {
+                weekday: 'long', // e.g., "Monday"
+                month: 'short',  // e.g., "Mar"
+                day: 'numeric'   // e.g., "18"
+            });
 
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
