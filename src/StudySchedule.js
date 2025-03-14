@@ -48,12 +48,17 @@ const StudySchedule = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
 
     //state to store the retrieved study plan
-    const [studyPlan, setStudyPlan] = useState(null);
+    const [studyPlan, setStudyPlan] = useState(() => {
+        const storedPlan = localStorage.getItem("StudyPlan");
+        return storedPlan ? JSON.parse(storedPlan) : null;
+    });
 
     //Memorized study Schedule
     const groupedTimeSlots = useMemo(() => {
-
-        if (!studyPlan || studyPlan.length === 0) return {};
+        if (!studyPlan || studyPlan.length === 0) {
+            console.warn("Study plan is empty, skipping computation.");
+            return {};
+        }
         console.log("Processing groupTimedSlots from studyPlan:", studyPlan);
 
         //check if the study plan contains valid date values
@@ -94,28 +99,30 @@ const StudySchedule = () => {
 
 
     useEffect(() => {
-        console.log("Grouped Time Slots Updated: ", groupedTimeSlots);
+        if (!studyPlan) {
+            console.log("Fetching study plan from local storage...");
 
-        //retrieve the study plan from the local storage
-        const storedPlan = localStorage.getItem("StudyPlan");
-        if (!storedPlan || storedPlan.trim() === "") {
-            console.warn("No stored study plan found.");
-            return;
-        }
-                try {
+            //retrieve the study plan from the local storage
+            const storedPlan = localStorage.getItem("StudyPlan");
+            if (!storedPlan || storedPlan.trim() === "") {
+                console.warn("No stored study plan found.");
+                return;
+            }
+            try {
                 //parse the stored JSON string 
                 const parsedPlan = JSON.parse(storedPlan);
-                    console.log("Loaded study plan from storage:", parsedPlan); //debug
-                    if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.day && entry.startTime && entry.endTime)) {
-                        setStudyPlan(parsedPlan);
-                        console.log("Updated studyPlan state:", parsedPlan);
-                    } else {
-                        console.error("Invalid study plan format:", parsedPlan);
-                    }
-                } catch (error) {
+                console.log("Loaded study plan from storage:", parsedPlan); //debug
+                if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.day && entry.startTime && entry.endTime)) {
+                    setStudyPlan(parsedPlan);
+                    console.log("Updated studyPlan state:", parsedPlan);
+                } else {
+                    console.error("Invalid study plan format:", parsedPlan);
+                }
+            } catch (error) {
                 console.error("Error parsing stored study plan:", error);
+            }
         }
-    }, [groupedTimeSlots]);
+    }, []);
 
 
      ////might need later
@@ -180,7 +187,6 @@ const StudySchedule = () => {
                                                       <div key={i} className="schedule-row">
                                                           <span className="time-label">{`${hour}:${minute} ${period}`}</span>
                                                           {groupedTimeSlots[day]?.map((slot, index) => {
-                                                              console.log(`Rendering: ${slot.subject} from ${slot.startTime} to ${slot.endTime} on ${day}`);
 
                                                               const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
                                                               const formattedEndTime = Math.floor(convertTo24Hour(slot.endTime) / 60);
