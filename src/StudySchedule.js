@@ -163,12 +163,12 @@ const StudySchedule = () => {
                               .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
                               .map((dateKey) => {
                                   const dayIndex = new Date(dateKey).getDay();
-                                  console.log(`Rendering schedule for: ${dateKey}`, groupedTimeSlots[dateKey]);
+                                  console.log(`Rendering schedule for: ${dateKey}`, groupedTimeSlots[dateKey]);  
                                   return (
                                       <div key={dateKey} className={`schedule-day day-${dayIndex}`}>
-                                          <h3>{day}</h3>
+                                          <h3>{dateKey}</h3> 
                                           <div className="schedule-content">
-                                              {groupedTimeSlots[day]?.map((slot, index) => (
+                                              {groupedTimeSlots[dateKey]?.map((slot, index) => (
                                                   <div key={index} className="schedule-row">
                                                       <span className="time-label">
                                                           {convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}
@@ -178,7 +178,6 @@ const StudySchedule = () => {
                                                       </div>
                                                   </div>
                                               ))}
-
                                           </div>
                                       </div>
                                   );
