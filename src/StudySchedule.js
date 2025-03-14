@@ -115,7 +115,7 @@ const StudySchedule = () => {
                 } catch (error) {
                 console.error("Error parsing stored study plan:", error);
         }
-    }, []);
+    }, [groupedTimeSlots]);
 
 
      ////might need later
