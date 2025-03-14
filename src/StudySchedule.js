@@ -166,34 +166,35 @@ const StudySchedule = () => {
                                       <div key={day} className="schedule-day">
                                           <h3>{day}</h3>
                                           <div className="schedule-content">
-                                              {Array.from({ length: 48 }, (_, i) => (
-                                                  <div key={i} className="schedule-row">
-                                                      <span className="time-label">
-                                                          {(() => {
-                                                              let hour = Math.floor(i / 2);
-                                                              let minute = i % 2 === 0 ? "00" : "30";
-                                                              let period = hour < 12 ? "AM" : "PM";
-                                                              if (hour === 0) hour = 12; // Midnight case
-                                                              if (hour > 12) hour -= 12; // Convert 24-hour to 12-hour format
-                                                              return `${hour}:${minute} ${period}`;
-                                                          })()}
-                                                      </span>
-                                                      {groupedTimeSlots[day]?.map((slot, index) => {
-                                                          console.log(`Rendering: ${slot.subject} from ${slot.startTime} to ${slot.endTime} on ${day}`);
+                                              {Array.from({ length: 48 }, (_, i) => {
+                                                  let hour = Math.floor(i / 2);
+                                                  let minute = i % 2 === 0 ? "00" : "30";
 
-                                                          const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
-                                                          const formattedEndTime = Math.floor(convertTo24Hour(slot.endTime) / 60);
+                                                  let period = hour < 12 ? "AM" : "PM";
+                                                  if (hour === 0) hour = 12; // Midnight case
+                                                  if (hour > 12) hour -= 12; // Convert 24-hour to 12-hour format
 
-                                                          return formattedStartTime === (hour * 60 + parseInt(minute)) ||
-                                                              (formattedStartTime < (hour * 60 + parseInt(minute)) && formattedEndTime > (hour * 60 + parseInt(minute))) ? (
-                                                              <div key={index} className="study-session">
-                                                                  <strong>{slot.subject}</strong>
-                                                                  <span>{convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}</span>
-                                                              </div>
-                                                          ) : null;
-                                                      })}
-                                                  </div>
-                                              ))}
+                                                  let currentTimeSlot = hour * 60 + parseInt(minute);
+
+                                                  return (
+                                                      <div key={i} className="schedule-row">
+                                                          <span className="time-label">{`${hour}:${minute} ${period}`}</span>
+                                                          {groupedTimeSlots[day]?.map((slot, index) => {
+                                                              console.log(`Rendering: ${slot.subject} from ${slot.startTime} to ${slot.endTime} on ${day}`);
+
+                                                              const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
+                                                              const formattedEndTime = Math.floor(convertTo24Hour(slot.endTime) / 60);
+
+                                                              return formattedStartTime <= currentTimeSlot && formattedEndTime > currentTimeSlot ? (
+                                                                  <div key={index} className="study-session">
+                                                                      <strong>{slot.subject}</strong>
+                                                                      <span>{convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}</span>
+                                                                  </div>
+                                                              ) : null;
+                                                          })}
+                                                      </div>
+                                                  );
+                                              })}
                                           </div>
                                       </div>
                                   );
