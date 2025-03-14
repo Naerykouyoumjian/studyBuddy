@@ -32,14 +32,11 @@ const StudySchedule = () => {
 
         let [hour, minute] = time.split(":");
         hour = parseInt(hour, 10);
+        minute = parseInt(minute, 10);
 
-        let period = "AM";
-        if (hour >= 12) {
-            period = "PM";
-            if (hour > 12) hour -= 12;
-        } else if (hour === 0) {
-            hour = 12; // Midnight case
-        }
+        let period = hour >= 12 ? "PM" : "AM";
+        if (hour > 12) hour -= 12;
+        if (hour === 0) hour = 12; // Midnight case
 
         return `${hour}:${String(minute).padStart(2, '0')} ${period}`;
     };
@@ -162,10 +159,11 @@ const StudySchedule = () => {
                       <div className="schedule-grid">
                           {Object.keys(groupedTimeSlots)
                               .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-                              .map((day) => {
+                              .map((dateKey) => {
+                                  const dayIndex = new Date(dateKey).getDay();
                                   console.log(`Rendering schedule for: ${day}`, groupedTimeSlots[day]);
                                   return (
-                                      <div key={day} className="schedule-day">
+                                      <div key={dateKey} className={`schedule-day day-${dayIndex}`}>
                                           <h3>{day}</h3>
                                           <div className="schedule-content">
                                               {groupedTimeSlots[day]?.map((slot, index) => (
