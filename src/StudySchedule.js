@@ -79,12 +79,7 @@ const StudySchedule = () => {
                 return acc;
             }
 
-            const formattedDate = sessionDate.toLocaleDateString(undefined, {
-                weekday: 'long',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
+            const formattedDate = session.date;
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
             acc[formattedDate].push(session);
