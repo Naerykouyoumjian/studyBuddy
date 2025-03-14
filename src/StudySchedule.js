@@ -53,8 +53,6 @@ const StudySchedule = () => {
     //Memorized study Schedule
     const groupedTimeSlots = useMemo(() => {
 
-        console.log("Final groupedTimeSlots:", groupedTimeSlots);
-
         if (!studyPlan || studyPlan.length === 0) return {};
         console.log("Processing groupTimedSlots from studyPlan:", studyPlan);
 
@@ -162,38 +160,39 @@ const StudySchedule = () => {
 
                       <div className="schedule-grid">
                           {Object.keys(groupedTimeSlots)
-                              .sort((a, b) => new Date(a) - new Date(b))  
+                              .sort((a, b) => new Date(a) - new Date(b))
                               .map((day) => {
-                                  console.log("Rendering day:", day);
-                                  <div key={day} className="schedule-day">
-                                      <h3>{day}</h3>
-                                      <div className="schedule-content">
-                                          {Array.from({ length: 48 }, (_, i) => (
-                                              <div key={i} className="schedule-row">
-                                                  <span className="time-label">
-                                                      {(() => {
-                                                          let hour = Math.floor(i / 2);
-                                                          let minute = i % 2 === 0 ? "00" : "30";
-                                                          let period = hour < 12 ? "AM" : "PM";
-                                                          if (hour === 0) hour = 12; // Midnight case
-                                                          if (hour > 12) hour -= 12; // Convert 24-hour to 12-hour format
-                                                          return `${hour}:${minute} ${period}`;
-                                                      })()}
-                                                  </span>
-                                                  {groupedTimeSlots[day]?.map((slot, index) => {
-                                                      const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
-                                                      const formattedEndTime = Math.floor(convertTo24Hour(slot.endTime) / 60);
-                                                      return formattedStartTime <= (9 + i) && formattedEndTime > (9 + i) ? (
-                                                          <div key={index} className="study-session">
-                                                              <strong>{slot.subject}</strong>
-                                                              <span>{convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}</span>
-                                                          </div>
-                                                      ) : null;
-                                                  })}
-                                              </div>
-                                          ))}
+                                  return (
+                                      <div key={day} className="schedule-day">
+                                          <h3>{day}</h3>
+                                          <div className="schedule-content">
+                                              {Array.from({ length: 48 }, (_, i) => (
+                                                  <div key={i} className="schedule-row">
+                                                      <span className="time-label">
+                                                          {(() => {
+                                                              let hour = Math.floor(i / 2);
+                                                              let minute = i % 2 === 0 ? "00" : "30";
+                                                              let period = hour < 12 ? "AM" : "PM";
+                                                              if (hour === 0) hour = 12; // Midnight case
+                                                              if (hour > 12) hour -= 12; // Convert 24-hour to 12-hour format
+                                                              return `${hour}:${minute} ${period}`;
+                                                          })()}
+                                                      </span>
+                                                      {groupedTimeSlots[day]?.map((slot, index) => {
+                                                          const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
+                                                          const formattedEndTime = Math.floor(convertTo24Hour(slot.endTime) / 60);
+                                                          return formattedStartTime <= (9 + i) && formattedEndTime > (9 + i) ? (
+                                                              <div key={index} className="study-session">
+                                                                  <strong>{slot.subject}</strong>
+                                                                  <span>{convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}</span>
+                                                              </div>
+                                                          ) : null;
+                                                      })}
+                                                  </div>
+                                              ))}
+                                          </div>
                                       </div>
-                                  </div>
+                                  );
                               })}
                       </div>
                   </div>
