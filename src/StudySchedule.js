@@ -61,7 +61,6 @@ const StudySchedule = () => {
         }
         console.log("Processing groupTimedSlots from studyPlan:", studyPlan);
 
-        //check if the study plan contains valid date values
         const validSlots = studyPlan.filter(session => session.startTime && session.endTime);
 
         if (validSlots.length === 0) {
@@ -69,26 +68,22 @@ const StudySchedule = () => {
             return {};
         }
 
-        // Sort by start time before setting timeSlots
         const sortedSlots = [...validSlots].sort((a, b) =>
             convertTo24Hour(a.startTime) - convertTo24Hour(b.startTime)
         );
 
-        //group by day
         const groupedSlots = sortedSlots.reduce((acc, session) => {
-
             const sessionDate = new Date(session.date);
-
             if (isNaN(sessionDate.getTime())) {
                 console.error("Invalid date format:", session.date);
                 return acc;
             }
 
             const formattedDate = sessionDate.toLocaleDateString(undefined, {
-                weekday: 'long',  // example "Monday"
-                month: 'short',   // example "Mar"
-                day: 'numeric',    // example "18"
-                year: 'numeric' //example "2025"
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
             });
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
@@ -96,10 +91,10 @@ const StudySchedule = () => {
             return acc;
         }, {});
 
-        console.log("Updated groupedTimeSlots:", groupedSlots);
-        return groupedSlots;
+        return groupedSlots; 
     }, [studyPlan]);
 
+    console.log("Updated groupedTimeSlots:", groupedTimeSlots);
 
     useEffect(() => {
         if (!studyPlan || studyPlan.length === 0) {
