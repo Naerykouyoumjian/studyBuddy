@@ -179,9 +179,13 @@ const StudySchedule = () => {
                                                           })()}
                                                       </span>
                                                       {groupedTimeSlots[day]?.map((slot, index) => {
+                                                          console.log(`Rendering: ${slot.subject} from ${slot.startTime} to ${slot.endTime} on ${day}`);
+
                                                           const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
                                                           const formattedEndTime = Math.floor(convertTo24Hour(slot.endTime) / 60);
-                                                          return formattedStartTime <= (9 + i) && formattedEndTime > (9 + i) ? (
+
+                                                          return formattedStartTime === (hour * 60 + parseInt(minute)) ||
+                                                              (formattedStartTime < (hour * 60 + parseInt(minute)) && formattedEndTime > (hour * 60 + parseInt(minute))) ? (
                                                               <div key={index} className="study-session">
                                                                   <strong>{slot.subject}</strong>
                                                                   <span>{convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}</span>
