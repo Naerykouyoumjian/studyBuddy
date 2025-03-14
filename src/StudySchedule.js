@@ -162,6 +162,7 @@ const StudySchedule = () => {
                           {Object.keys(groupedTimeSlots)
                               .sort((a, b) => new Date(a) - new Date(b))
                               .map((day) => {
+                                  console.log(`Rendering schedule for: ${day}`, groupedTimeSlots[day]);
                                   return (
                                       <div key={day} className="schedule-day">
                                           <h3>{day}</h3>
@@ -180,7 +181,7 @@ const StudySchedule = () => {
                                                       <div key={i} className="schedule-row">
                                                           <span className="time-label">{`${hour}:${minute} ${period}`}</span>
                                                           {groupedTimeSlots[day]?.map((slot, index) => {
-
+                                                              console.log(`Rendering slot for ${day}:`, slot);
                                                               const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
                                                               const formattedEndTime = Math.floor(convertTo24Hour(slot.endTime) / 60);
 
