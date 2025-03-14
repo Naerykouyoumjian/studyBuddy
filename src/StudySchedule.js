@@ -180,10 +180,11 @@ const StudySchedule = () => {
                                                   return (
                                                       <div key={i} className="schedule-row">
                                                           <span className="time-label">{`${hour}:${minute} ${period}`}</span>
-                                                          {groupedTimeSlots[day]?.map((slot, index) => {
+                                                          {groupedTimeSlots[day] && groupedTimeSlots[day].length > 0 && groupedTimeSlots[day].map((slot, index) => {
                                                               console.log(`Rendering slot for ${day}:`, slot);
                                                               const formattedStartTime = Math.floor(convertTo24Hour(slot.startTime) / 60);
                                                               const formattedEndTime = Math.floor(convertTo24Hour(slot.endTime) / 60);
+                                                              console.log(`Comparing: formattedStartTime=${formattedStartTime}, formattedEndTime=${formattedEndTime}, currentTimeSlot=${currentTimeSlot}`);
 
                                                               return formattedStartTime <= currentTimeSlot && formattedEndTime > currentTimeSlot ? (
                                                                   <div key={index} className="study-session">
