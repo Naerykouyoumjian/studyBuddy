@@ -62,7 +62,7 @@ const StudySchedule = () => {
         console.log("Processing groupTimedSlots from studyPlan:", studyPlan);
 
         //check if the study plan contains valid date values
-        const validSlots = studyPlan.filter(session => session.date && !isNaN(new Date(session.date).getTime()));
+        const validSlots = studyPlan.filter(session => session.startTime && session.endTime);
 
         if (validSlots.length === 0) {
             console.error("No valid sessions found in study plan.");
@@ -75,7 +75,7 @@ const StudySchedule = () => {
         );
 
         //group by day
-        return sortedSlots.reduce((acc, session) => {
+        const groupedSlots = sortedSlots.reduce((acc, session) => {
 
             const sessionDate = new Date(session.date);
 
@@ -94,12 +94,15 @@ const StudySchedule = () => {
             if (!acc[formattedDate]) acc[formattedDate] = [];
             acc[formattedDate].push(session);
             return acc;
-            }, {});
+        }, {});
+
+        console.log("Updated groupedTimeSlots:", groupedSlots);
+        return groupedSlots;
     }, [studyPlan]);
 
 
     useEffect(() => {
-        if (!studyPlan) {
+        if (!studyPlan || studyPlan.length === 0) {
             console.log("Fetching study plan from local storage...");
 
             //retrieve the study plan from the local storage
@@ -122,7 +125,7 @@ const StudySchedule = () => {
                 console.error("Error parsing stored study plan:", error);
             }
         }
-    }, []);
+    }, [studyPlan]);
 
 
      ////might need later
