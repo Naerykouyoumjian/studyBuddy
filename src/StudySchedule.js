@@ -94,18 +94,20 @@ const StudySchedule = () => {
         if (!studyPlan || studyPlan.length === 0) {
             console.log("Fetching study plan from local storage...");
 
-            //retrieve the study plan from the local storage
             const storedPlan = localStorage.getItem("StudyPlan");
             if (!storedPlan || storedPlan.trim() === "") {
                 console.warn("No stored study plan found.");
                 return;
             }
+
             try {
-                //parse the stored JSON string 
                 const parsedPlan = JSON.parse(storedPlan);
-                console.log("Loaded study plan from storage:", parsedPlan); //debug
+                console.log("Loaded study plan from storage:", parsedPlan);
+
                 if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.day && entry.startTime && entry.endTime)) {
-                    setStudyPlan(parsedPlan);
+                    if (JSON.stringify(parsedPlan) !== JSON.stringify(studyPlan)) {
+                        setStudyPlan(parsedPlan); // Only update state if different
+                    }
                 } else {
                     console.error("Invalid study plan format:", parsedPlan);
                 }
@@ -161,7 +163,7 @@ const StudySchedule = () => {
                               .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
                               .map((dateKey) => {
                                   const dayIndex = new Date(dateKey).getDay();
-                                  console.log(`Rendering schedule for: ${day}`, groupedTimeSlots[day]);
+                                  console.log(`Rendering schedule for: ${dateKey}`, groupedTimeSlots[dateKey]);
                                   return (
                                       <div key={dateKey} className={`schedule-day day-${dayIndex}`}>
                                           <h3>{day}</h3>
