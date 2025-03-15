@@ -167,6 +167,9 @@ const StudySchedule = () => {
                               const formattedDate = columnDate.toISOString().split('T')[0];
 
                               // Get sessions for this date
+                              console.log("Checking for sessions on:", formattedDate);
+                              console.log("Available dates in groupedTimeSlots:", Object.keys(groupedTimeSlots));
+
                               const sessionsForDay = groupedTimeSlots[formattedDate] || [];
 
                               return (
