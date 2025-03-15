@@ -156,31 +156,43 @@ const StudySchedule = () => {
                           })}
                       </div>
                       <div className="schedule-grid">
-                          {Object.keys(groupedTimeSlots)
-                              .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-                              .map((dateKey) => {
-                                  const dayIndex = new Date(dateKey).getDay();
-                                  console.log(`Rendering schedule for: ${dateKey}`, groupedTimeSlots[dateKey]);  
-                                  return (
-                                      <div key={dateKey} className={`schedule-day day-${dayIndex}`}>
-                                          <h3>{new Date(dateKey).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</h3>
+                          {[...Array(7)].map((_, dayIndex) => {
+                              // Get the corresponding date for this column (starting from selected week)
+                              const today = new Date(); // Get current date
+                              const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay())); // Move to Sunday
+                              const columnDate = new Date(startOfWeek);
+                              columnDate.setDate(startOfWeek.getDate() + dayIndex); // Get each day's date
 
-                                          <div className="schedule-content">
-                                              {groupedTimeSlots[dateKey]?.map((slot, index) => (
-                                                  <div key={index} className="study-session" style={{ gridRow: Math.floor(convertTo24Hour(slot.startTime) / 60) + 1 }}>
-                                                      <span className="time-label">
-                                                          {convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}
-                                                      </span>
-                                                      <div className="session-box">
-                                                          <strong>{slot.subject}</strong>
-                                                      </div>
+                              // Format date to match stored format
+                              const formattedDate = columnDate.toISOString().split('T')[0];
+
+                              // Get sessions for this date
+                              const sessionsForDay = groupedTimeSlots[formattedDate] || [];
+
+                              return (
+                                  <div key={dayIndex} className={`schedule-day day-${dayIndex}`}>
+                                      {/* Show day name + formatted date */}
+                                      <h3>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dayIndex]}</h3>
+                                      <h4>{columnDate.toDateString()}</h4>
+
+                                      {/* Render sessions if any exist for this day */}
+                                      {sessionsForDay.length > 0 ? (
+                                          sessionsForDay.map((slot, i) => (
+                                              <div key={i} className="schedule-row">
+                                                  <span className="time-label">
+                                                      {convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}
+                                                  </span>
+                                                  <div className="study-session">
+                                                      <strong>{slot.subject}</strong>
                                                   </div>
-
-                                              ))}
-                                          </div>
-                                      </div>
-                                  );
-                              })}
+                                              </div>
+                                          ))
+                                      ) : (
+                                          <p className="empty-slot">No Sessions</p>
+                                      )}
+                                  </div>
+                              );
+                          })}
                       </div>
                   </div>
 
