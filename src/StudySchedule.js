@@ -148,16 +148,13 @@ const StudySchedule = () => {
 
                   {/* Schedule Section */}
                   <div className="schedule-container">
-                      <div className="week-header">
-                          <span> Sun</span>
-                          <span>Mon</span>
-                          <span>Tue</span>
-                          <span>Wed</span>
-                          <span>Thu</span>
-                          <span>Fri</span>
-                          <span>Sat</span>
+                      <div className="time-column">
+                          {Array.from({ length: 24 }, (_, i) => {
+                              const hour = i % 12 || 12; // Convert 24-hour to 12-hour format
+                              const period = i < 12 ? "AM" : "PM";
+                              return <div key={i} className="time-label">{`${hour}:00 ${period}`}</div>;
+                          })}
                       </div>
-
                       <div className="schedule-grid">
                           {Object.keys(groupedTimeSlots)
                               .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
@@ -166,17 +163,19 @@ const StudySchedule = () => {
                                   console.log(`Rendering schedule for: ${dateKey}`, groupedTimeSlots[dateKey]);  
                                   return (
                                       <div key={dateKey} className={`schedule-day day-${dayIndex}`}>
-                                          <h3>{dateKey}</h3> 
+                                          <h3>{new Date(dateKey).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</h3>
+
                                           <div className="schedule-content">
                                               {groupedTimeSlots[dateKey]?.map((slot, index) => (
-                                                  <div key={index} className="schedule-row">
+                                                  <div key={index} className="study-session" style={{ gridRow: Math.floor(convertTo24Hour(slot.startTime) / 60) + 1 }}>
                                                       <span className="time-label">
                                                           {convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}
                                                       </span>
-                                                      <div className="study-session">
+                                                      <div className="session-box">
                                                           <strong>{slot.subject}</strong>
                                                       </div>
                                                   </div>
+
                                               ))}
                                           </div>
                                       </div>
