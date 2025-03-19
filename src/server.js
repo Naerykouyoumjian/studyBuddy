@@ -114,12 +114,9 @@ You are a study plan assistant. Generate a study schedule in **valid JSON format
 });
 
 //Route to save the study plan to database (ONLY when the user clicks "Save Plan")
-app.post('/save-study-plan', (req, res) => {
-
-    //extract user email and study plan 
+app.post('/save-study-plan', async (req, res) => {
     const { userEmail, studyPlan } = req.body;
 
-    //check if all the required fields are provided
     if (!userEmail || !studyPlan) {
         return res.status(400).json({
             success: false,
@@ -127,25 +124,22 @@ app.post('/save-study-plan', (req, res) => {
         });
     }
 
-    //query to insert the plan into the 'studyPlan' table
-    const query = 'INSERT INTO studyPlans (user_email, plan_text) VALUES (?, ?)';
-
-    //execute the query with the given values (will do only after clicking save)
-    db.query(query, [userEmail, studyPlan], (error, result) => {
-        if (error) {
-            console.error('Database error while saving:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to save the study plan.'
-            });
-        }
+    try {
+        const query = 'INSERT INTO studyPlans (user_email, plan_text) VALUES (?, ?)';
+        const [result] = await db.promise().query(query, [userEmail, JSON.stringify(studyPlan)]);
 
         return res.status(200).json({
             success: true,
-            message: 'Study plan saved!',
+            message: 'Study plan saved successfully!',
             planId: result.insertId
         });
-    });
+    } catch (error) {
+        console.error('Database error while saving:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to save the study plan.'
+        });
+    }
 });
 
 //setup a server
