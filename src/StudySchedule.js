@@ -138,11 +138,8 @@ const StudySchedule = () => {
                       </div>
                       <div className="schedule-grid">
                           {[...Array(7)].map((_, dayIndex) => {
-                              // Get the corresponding date for this column (starting from selected week)
-                              const today = new Date(); // Get current date
-                              const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay())); // Move to Sunday
-                              const columnDate = new Date(startOfWeek);
-                              columnDate.setDate(startOfWeek.getDate() + dayIndex); // Get each day's date
+                              const uniqueDates = Object.keys(groupedTimeSlots).sort(); // Get all stored dates
+                              const columnDate = new Date(uniqueDates[dayIndex]); // Use actual saved dates instead of current week
 
                               // Format date to match stored format
                               const formattedDate = columnDate.toISOString().split('T')[0];
