@@ -1,50 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './ViewScheduleList.css';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import Navbar from "./Navbar";
+import "./ViewScheduleList.css";
 
 const ViewScheduleList = () => {
     const [studyPlans, setStudyPlans] = useState([]);
-    const navigate = useNavigate();
-
-    //retrieve the logged-in user's email from local storage
-    const storedUser = localStorage.getItem("user");
-    const userEmail = storedUser ? JSON.parse(storedUser).email : "test@example.com"; //for testing
+    const user = JSON.parse(localStorage.getItem("user")); // Get logged-in user
+    const userEmail = user?.email || ""; 
 
     useEffect(() => {
-        if (!userEmail) {
-            console.error("No user email found. Please log in.");
-            return;
-        }
+        const fetchStudyPlans = async () => {
+            try {
+                const backendURL = process.env.REACT_APP_BACKEND_URL;
+                const response = await fetch(`${backendURL}/get-study-plans/${userEmail}`);
 
-        // Fetch study plans for the logged-in user
-        fetch(`http://3.15.237.83:3001/get-study-plans/${userEmail}`)
-            .then(response => response.json())
-            .then(data => {
+                if (!response.ok) {
+                    throw new Error("Failed to fetch study plans");
+                }
+
+                const data = await response.json();
                 setStudyPlans(data);
-            })
-            .catch(error => console.error("Error fetching study plans:", error));
+            } catch (error) {
+                console.error("Error fetching study plans:", error);
+            }
+        };
+
+        if (userEmail) {
+            fetchStudyPlans();
+        }
     }, [userEmail]);
 
-    const handleViewPlan = (plan) => {
-        localStorage.setItem("StudyPlan", JSON.stringify(plan.plan_text));
-        navigate("/study-schedule"); // Redirect to the detailed schedule page
-    };
-
     return (
-        <div className="schedule-list-container">
-            <h2>Saved Study Plans</h2>
-            {studyPlans.length === 0 ? (
-                <p>No study plans found.</p>
-            ) : (
-                <ul>
-                    {studyPlans.map((plan) => (
-                        <li key={plan.id} onClick={() => handleViewPlan(plan)}>
-                            {plan.plan_text.title} - Created on {new Date(plan.created_at).toLocaleDateString()}
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+        <>
+            <Navbar />
+            <div className="view-schedules-container">
+                <h2>Your Saved Study Plans</h2>
+                {studyPlans.length === 0 ? (
+                    <p>No saved study plans found.</p>
+                ) : (
+                    <ul className="study-plans-list">
+                        {studyPlans.map((plan) => (
+                            <li key={plan.id}>
+                                <Link to={`/view-schedule/${plan.id}`}>
+                                    {plan.plan_text.title || `Study Plan #${plan.id}`} - {new Date(plan.created_at).toLocaleDateString()}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        </>
     );
 };
 

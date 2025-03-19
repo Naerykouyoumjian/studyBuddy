@@ -14,6 +14,7 @@ import StudySchedule from './StudySchedule';
 import CreateToDoList from './CreateToDoList';
 import PreviewToDoLists from './PreviewToDoLists';
 import ViewToDoList from './ViewToDoList';
+import ViewScheduleList from './ViewScheduleList';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -55,6 +56,8 @@ function App() {
                 <Route path="/create-todolist" element={<CreateToDoList />} />
                 <Route path="/preview-todolists" element={<PreviewToDoLists />} />
                 <Route path="/view-todolist" element={<ViewToDoList />} />
+                <Route path="/view-schedules" element={<ViewScheduleList />} />
+                <Route path="/study-plan/:planId" element={<SingleStudyPlan />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </>
