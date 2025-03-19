@@ -183,7 +183,15 @@ app.get('/get-study-plans/:userEmail', async (req, res) => {
         const query = 'SELECT * FROM studyPlans WHERE user_email = ?';
         const [plans] = await db.promise().query(query, [userEmail]);
 
-        return res.status(200).json(plans);
+        // Parse the JSON stored in `plan_text`
+        const formattedPlans = plans.map(plan => ({
+            id: plan.id,
+            user_email: plan.user_email,
+            plan_text: JSON.parse(plan.plan_text), // Convert back to JSON object
+            created_at: plan.created_at
+        }));
+
+        return res.status(200).json(formattedPlans);
     } catch (error) {
         console.error('Database error while retrieving study plans:', error);
         return res.status(500).json({
