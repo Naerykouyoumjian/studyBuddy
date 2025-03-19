@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "./Navbar";
 import "./ViewScheduleList.css";
+import SingleStudyPlan from './SingleStudyPlan';
+
 
 const ViewScheduleList = () => {
     const [studyPlans, setStudyPlans] = useState([]);
