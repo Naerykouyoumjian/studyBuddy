@@ -60,7 +60,7 @@ const StudySchedule = () => {
 
         // Filter out invalid entries
         const validSlots = studyPlan.filter(session =>
-            session.startTime && session.endTime && session.date
+            session.startTime && session.endTime && session.day
         );
 
         if (validSlots.length === 0) {
@@ -70,7 +70,7 @@ const StudySchedule = () => {
 
         // Group by date
         const groupedSlots = validSlots.reduce((acc, session) => {
-            const formattedDate = session.date;
+            const formattedDate = session.day;
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
             acc[formattedDate].push(session);
