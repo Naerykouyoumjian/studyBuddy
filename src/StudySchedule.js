@@ -91,31 +91,32 @@ const StudySchedule = () => {
 
 
     useEffect(() => {
-        if (!studyPlan || studyPlan.length === 0) {
-            console.log("Fetching study plan from local storage...");
+        console.log("Fetching study plan from local storage...");
 
-            const storedPlan = localStorage.getItem("StudyPlan");
-            if (!storedPlan || storedPlan.trim() === "") {
-                console.warn("No stored study plan found.");
-                return;
+        const storedPlan = localStorage.getItem("StudyPlan");
+        console.log("Raw storedPlan:", storedPlan); 
+
+        if (!storedPlan || storedPlan.trim() === "") {
+            console.warn("No stored study plan found.");
+            return;
+        }
+
+        try {
+            const parsedPlan = JSON.parse(storedPlan);
+            console.log("Loaded study plan from storage:", parsedPlan);
+
+            // Check if the parsed plan is a valid array with required properties
+            if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.day && entry.startTime && entry.endTime && entry.date)) {
+                console.log("Study plan is valid, updating state.");
+                setStudyPlan(parsedPlan); 
+            } else {
+                console.error("Invalid study plan format detected:", parsedPlan);
             }
-
-            try {
-                const parsedPlan = JSON.parse(storedPlan);
-                console.log("Loaded study plan from storage:", parsedPlan);
-
-                if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.day && entry.startTime && entry.endTime)) {
-                    if (JSON.stringify(parsedPlan) !== JSON.stringify(studyPlan)) {
-                        setStudyPlan(parsedPlan); // Only update state if different
-                    }
-                } else {
-                    console.error("Invalid study plan format:", parsedPlan);
-                }
-            } catch (error) {
-                console.error("Error parsing stored study plan:", error);
-            }
+        } catch (error) {
+            console.error("Error parsing stored study plan:", error);
         }
     }, []);
+
 
 
      ////might need later
