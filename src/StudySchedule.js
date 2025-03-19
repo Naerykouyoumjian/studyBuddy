@@ -60,12 +60,17 @@ const StudySchedule = () => {
         console.log("Processing studyPlan:", studyPlan);
 
         const groupedSlots = studyPlan.reduce((acc, session) => {
-            const formattedDate = session.date;
+            if (!session.date) {
+                console.error("Skipping session with missing date:", session);
+                return acc; // Skip invalid data
+            }
 
+            const formattedDate = session.date;
             if (!acc[formattedDate]) acc[formattedDate] = [];
             acc[formattedDate].push(session);
             return acc;
         }, {});
+
 
         console.log("Grouped study sessions by date:", groupedSlots);
         return groupedSlots;
@@ -139,7 +144,8 @@ const StudySchedule = () => {
                       <div className="schedule-grid">
                           {[...Array(7)].map((_, dayIndex) => {
                               const uniqueDates = Object.keys(groupedTimeSlots).sort(); // Get all stored dates
-                              const columnDate = new Date(uniqueDates[dayIndex]); // Use actual saved dates instead of current week
+                              const columnDate = uniqueDates[dayIndex] ? new Date(uniqueDates[dayIndex]) : new Date();
+
 
                               // Format date to match stored format
                               const formattedDate = columnDate.toISOString().split('T')[0];
