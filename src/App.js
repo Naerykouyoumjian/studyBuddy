@@ -15,6 +15,8 @@ import CreateToDoList from './CreateToDoList';
 import PreviewToDoLists from './PreviewToDoLists';
 import ViewToDoList from './ViewToDoList';
 import ViewScheduleList from './ViewScheduleList';
+import SingleStudyPlan from './SingleStudyPlan';
+
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
