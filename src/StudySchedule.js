@@ -56,35 +56,18 @@ const StudySchedule = () => {
             console.warn("Study plan is empty, skipping computation.");
             return {};
         }
+
         console.log("Processing studyPlan:", studyPlan);
 
-        // Filter out invalid entries
-        const validSlots = studyPlan.filter(session =>
-            session.startTime && session.endTime && session.day
-        );
-
-        if (validSlots.length === 0) {
-            console.error("No valid sessions found in study plan.");
-            return {};
-        }
-
-        // Group by date
-        const groupedSlots = validSlots.reduce((acc, session) => {
-            const formattedDate = session.day;
+        const groupedSlots = studyPlan.reduce((acc, session) => {
+            const formattedDate = session.date;
 
             if (!acc[formattedDate]) acc[formattedDate] = [];
             acc[formattedDate].push(session);
             return acc;
         }, {});
 
-        // Sort sessions within each date **after** reducing
-        Object.keys(groupedSlots).forEach(date => {
-            groupedSlots[date].sort((a, b) =>
-                convertTo24Hour(a.startTime) - convertTo24Hour(b.startTime)
-            );
-        });
-
-        console.log("Updated groupedTimeSlots:", groupedSlots);
+        console.log("Grouped study sessions by date:", groupedSlots);
         return groupedSlots;
 
     }, [studyPlan]);
@@ -94,8 +77,6 @@ const StudySchedule = () => {
         console.log("Fetching study plan from local storage...");
 
         const storedPlan = localStorage.getItem("StudyPlan");
-        console.log("Raw storedPlan:", storedPlan); 
-
         if (!storedPlan || storedPlan.trim() === "") {
             console.warn("No stored study plan found.");
             return;
@@ -105,12 +86,11 @@ const StudySchedule = () => {
             const parsedPlan = JSON.parse(storedPlan);
             console.log("Loaded study plan from storage:", parsedPlan);
 
-            // Check if the parsed plan is a valid array with required properties
-            if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.day && entry.startTime && entry.endTime && entry.date)) {
-                console.log("Study plan is valid, updating state.");
-                setStudyPlan(parsedPlan); 
+            if (Array.isArray(parsedPlan) && parsedPlan.every(entry => entry.day && entry.startTime && entry.endTime)) {
+                setStudyPlan(parsedPlan);
+                console.log("Study plan successfully updated in state:", parsedPlan); // Log the updated state
             } else {
-                console.error("Invalid study plan format detected:", parsedPlan);
+                console.error("Invalid study plan format:", parsedPlan);
             }
         } catch (error) {
             console.error("Error parsing stored study plan:", error);
@@ -172,6 +152,7 @@ const StudySchedule = () => {
                               console.log("Available dates in groupedTimeSlots:", Object.keys(groupedTimeSlots));
 
                               const sessionsForDay = groupedTimeSlots[formattedDate] || [];
+                              console.log(`Rendering sessions for ${formattedDate}:`, sessionsForDay);
 
                               return (
                                   <div key={dayIndex} className={`schedule-day day-${dayIndex}`}>
