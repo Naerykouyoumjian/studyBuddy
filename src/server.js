@@ -175,6 +175,24 @@ app.get('/', (req, res) => {
   console.log("GET request to '/' route");
 });
 
+//route to fetch all study plans for a specific user
+app.get('/get-study-plans/:userEmail', async (req, res) => {
+    const { userEmail } = req.params;
+
+    try {
+        const query = 'SELECT * FROM studyPlans WHERE user_email = ?';
+        const [plans] = await db.promise().query(query, [userEmail]);
+
+        return res.status(200).json(plans);
+    } catch (error) {
+        console.error('Database error while retrieving study plans:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error retrieving study plans.'
+        });
+    }
+});
+
 //Connect to mySQL
 db.connect(error => {
   if (error) return console.error('Database connection failed:', error);
