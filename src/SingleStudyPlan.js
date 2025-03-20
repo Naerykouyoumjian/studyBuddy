@@ -14,6 +14,7 @@ const SingleStudyPlan = () => {
             try {
                 const backendURL = process.env.REACT_APP_BACKEND_URL;
                 const response = await fetch(`${backendURL}/get-single-study-plan/${planId}`);
+
                 if (!response.ok) {
                     throw new Error('Failed to fetch study plan');
                 }
@@ -36,15 +37,19 @@ const SingleStudyPlan = () => {
         <>
             <Navbar />
             <div className="single-study-plan-container">
-                <h2>{studyPlan.title}</h2>
+                <h2>{studyPlan.title || `Study Plan #${studyPlan.id}`}</h2>
                 <h3>Study Schedule</h3>
-                <ul>
-                    {studyPlan.schedule.map((session, index) => (
-                        <li key={index}>
-                            <strong>{session.day}:</strong> {session.subject} ({session.startTime} - {session.endTime})
-                        </li>
-                    ))}
-                </ul>
+                {Array.isArray(studyPlan.plan_text) && studyPlan.plan_text.length > 0 ? (
+                    <ul>
+                        {studyPlan.plan_text.map((session, index) => (
+                            <li key={index}>
+                                <strong>{session.day}:</strong> {session.subject} ({session.startTime} - {session.endTime})
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No sessions found for this study plan.</p>
+                )}
             </div>
         </>
     );
