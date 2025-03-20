@@ -81,15 +81,29 @@ const StudySchedule = () => {
             return;
         }
 
+        // Fetch user email from local storage
+        const user = JSON.parse(localStorage.getItem("user"));
+        const userEmail = user?.email; // Extract email
+
+        if (!userEmail) {
+            console.error("No user email found. User might not be logged in.");
+            alert("Error: User email is missing. Please log in again.");
+            return;
+        }
+
+        console.log("User email:", userEmail);
         console.log("Study plan found:", studyPlan);
 
         try {
-            const response = await fetch("http://3.15.237.83:3001/api/save-study-plan", {
+            const response = await fetch("http://3.15.237.83:3001/save-study-plan", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ studyPlan }),
+                body: JSON.stringify({
+                    userEmail,  // Send dynamic email
+                    studyPlan,
+                }),
             });
 
             if (!response.ok) {
