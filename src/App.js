@@ -59,7 +59,7 @@ function App() {
                 <Route path="/preview-todolists" element={<PreviewToDoLists />} />
                 <Route path="/view-todolist" element={<ViewToDoList />} />
                 <Route path="/view-schedules" element={<ViewScheduleList />} />
-                <Route path="/study-plan/:planId" element={<SingleStudyPlan />} />
+                <Route path="/view-schedule/:planId" element={<SingleStudyPlan />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </>
