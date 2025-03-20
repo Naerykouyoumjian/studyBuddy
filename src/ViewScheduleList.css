@@ -5,7 +5,7 @@
     text-align: center;
 }
 
-ul {
+.view-schedules-container ul {
     list-style-type: none;
     padding: 0;
 }
