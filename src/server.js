@@ -201,6 +201,34 @@ app.get('/get-study-plans/:userEmail', async (req, res) => {
     }
 });
 
+// Route to fetch a single study plan by ID
+app.get('/get-single-study-plan/:planId', async (req, res) => {
+    const { planId } = req.params;
+
+    try {
+        const query = 'SELECT * FROM studyPlans WHERE id = ?';
+        const [result] = await db.promise().query(query, [planId]);
+
+        if (result.length === 0) {
+            return res.status(404).json({ success: false, message: "Study plan not found." });
+        }
+
+        const studyPlan = {
+            id: result[0].id,
+            user_email: result[0].user_email,
+            plan_text: JSON.parse(result[0].plan_text), // Convert from JSON string
+            created_at: result[0].created_at
+        };
+
+        res.status(200).json(studyPlan);
+    } catch (error) {
+        console.error("Database error:", error);
+        res.status(500).json({ success: false, message: "Server error while fetching study plan." });
+    }
+});
+
+
+
 //Connect to mySQL
 db.connect(error => {
   if (error) return console.error('Database connection failed:', error);
