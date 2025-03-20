@@ -19,7 +19,7 @@ const Dashboard = () => {
             <div className="icon">&#128221;</div>
             <div className="label">Create To-Do List</div>
           </div>
-          <div className="card" onClick={() => alert("View Schedules has been pressed.\nThis feature has not been implemented yet.\nConsider checking out our User Account page instead")}>
+            <div className="card" onClick={() => navigate("/view-schedules")}>
             <div className="icon">&#128198;</div>
             <div className="label">View Schedules</div>
           </div>

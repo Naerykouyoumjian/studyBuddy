@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from "react-router-dom";
 import './StudySchedule.css';
 import Navbar from './Navbar';
 import Calendar from 'react-calendar'; // Importing calendar package
 import 'react-calendar/dist/Calendar.css';
 
 const StudySchedule = () => {
+
+    const navigate = useNavigate();
+
     const convertToAMPM = (time) => {
         if (!time || typeof time !== "string" || !time.includes(":")) return "Invalid Time";
 
@@ -113,6 +117,7 @@ const StudySchedule = () => {
             const result = await response.json();
             console.log("Study plan saved successfully:", result);
             alert("Study plan saved successfully!");
+            navigate("/view-schedules");
         } catch (error) {
             console.error("Error saving study plan:", error);
             alert("Failed to save study plan.");
