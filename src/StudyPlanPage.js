@@ -71,12 +71,6 @@ const generateTimeOptions = () => {
                   const fromTime = row.querySelector('.time-dropdown:first-of-type').value;
                   const toTime = row.querySelector('.time-dropdown:last-of-type').value;
 
-                  
-                  //if (fromTime === toTime) {
-                  //    alert(`Invalid time range for ${dayText}. Please select different start and end times.`);
-                  //    return;
-                  //}
-
                   const dayText = checkbox.parentNode.textContent.trim();
                   const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayText);
                   const selectedDay = new Date(selectedDate);
@@ -93,13 +87,11 @@ const generateTimeOptions = () => {
               }
           });
 
-          //Debug
           console.log("Sending request to backend:", JSON.stringify({
               subjects: subjectList.map(sub => sub.subject),
               priorities: subjectList.map(sub => sub.priority),
               timeSlots: selectedDays
           }, null, 2));
-
 
           try {
               const response = await fetch("http://3.15.237.83:3001/generate-plan", {
@@ -108,62 +100,51 @@ const generateTimeOptions = () => {
                       "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                      subjects: subjectList.map(sub => sub.subject),  // Send only subjects
+                      subjects: subjectList.map(sub => sub.subject),
                       priorities: subjectList.map(sub => sub.priority),
                       timeSlots: selectedDays,
-                      }),
+                  }),
               });
 
-              // Check if response is valid JSON
-              let data;
-              try {
-                  data = await response.json();
-              } catch (jsonError) {
-                  console.error("Error parsing API response:", jsonError);
-                  alert("Error: Received an invalid response from AI. Please try again.");
-                  return;
-              }
-
-
               if (!response.ok) {
-                  console.error("Error from AI:", data);
-                  alert("Error: " + (data.message || "Failed to generate study plan."));
-                  return;
+                  throw new Error(`HTTP error! Status: ${response.status}`);
               }
 
-              //debug
+              const data = await response.json();
               console.log("Full AI Response:", data);
-           
+
               if (!data.studyPlan || !Array.isArray(data.studyPlan)) {
-                  console.log("Unexpected AI response format: ", data);
-                  alert("Error: AI response is missing the study plan. Please try again later.");
+                  console.error("AI response is missing the study plan. Check API response format.");
+                  alert("Error: AI response is missing the study plan. Please try again.");
                   return;
               }
 
+              // Assign correct dates to each session
               const formattedStudyPlan = data.studyPlan.map(session => ({
                   ...session,
-                  date: selectedDays.find(day => day.day === session.day)?.date || null // Assign correct date
+                  date: selectedDays.find(day => day.day === session.day)?.date || null
               }));
 
               console.log("Storing Study Plan in local storage:", JSON.stringify(formattedStudyPlan));
               localStorage.setItem("StudyPlan", JSON.stringify(formattedStudyPlan));
 
-              console.log("Verifying stored Study Plan in localStorage:", localStorage.getItem("StudyPlan"));
+              // Verify if it was stored correctly
+              const storedPlan = localStorage.getItem("StudyPlan");
+              console.log("Verifying stored Study Plan:", storedPlan);
 
-              if (!localStorage.getItem("StudyPlan") || localStorage.getItem("StudyPlan") === "[]") {
-                  console.error("Study plan not properly saved in localStorage.");
+              if (!storedPlan || storedPlan === "[]") {
+                  console.error("Study plan not properly saved in localStorage!");
               } else {
                   console.log("Study plan successfully saved.");
+                  navigate("/study-schedule");
               }
-
-              // Navigate to the studySchedule page
-              navigate("/study-schedule");
 
           } catch (error) {
               console.error("Request failed:", error);
               alert("Failed to connect to AI. Please check your internet connection and try again.");
           }
       };
+
 
 
     return (

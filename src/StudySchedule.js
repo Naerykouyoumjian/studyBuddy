@@ -151,8 +151,8 @@ const StudySchedule = () => {
 
                                 return (
                                     <div key={dayIndex} className={`schedule-day day-${dayIndex}`}>
-                                        <h3>{new Date(formattedDate).toLocaleDateString("en-US", { weekday: "long" })}</h3>
-                                        <h4>{new Date(formattedDate).toDateString()}</h4>
+                                        <h3>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dayIndex]}</h3>
+                                        <h4>{columnDate.toDateString()}</h4>
 
                                         {sessionsForDay.length > 0 ? (
                                             sessionsForDay.map((slot, i) => (
