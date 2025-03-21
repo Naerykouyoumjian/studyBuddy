@@ -136,13 +136,6 @@ const StudySchedule = () => {
                 <div className="schedule-content-wrapper">
                     {/* Schedule Section */}
                     <div className="schedule-container">
-                        <div className="time-column">
-                            {Array.from({ length: 24 }, (_, i) => {
-                                const hour = i % 12 || 12;
-                                const period = i < 12 ? "AM" : "PM";
-                                return <div key={i} className="time-label">{`${hour}:00 ${period}`}</div>;
-                            })}
-                        </div>
                         <div className="schedule-grid">
                             {[...Array(7)].map((_, dayIndex) => {
                                 const uniqueDates = Object.keys(groupedTimeSlots).sort();

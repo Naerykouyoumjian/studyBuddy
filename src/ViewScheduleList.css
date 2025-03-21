@@ -10,7 +10,7 @@
     padding: 0;
 }
 
-li {
+.view-schedules-container li {
     padding: 10px;
     margin: 5px 0;
     background-color: #f0f0f0;
