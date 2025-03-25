@@ -138,10 +138,14 @@ const StudySchedule = () => {
                     <div className="schedule-container">
                         <div className="schedule-grid">
                             {[...Array(7)].map((_, dayIndex) => {
-                                const uniqueDates = Object.keys(groupedTimeSlots).sort();
-                                const columnDate = uniqueDates[dayIndex] ? new Date(uniqueDates[dayIndex]) : new Date();
+                                // Start of week (Sunday)
+                                const startOfWeek = new Date(selectedDate);
+                                const dayDiff = dayIndex - selectedDate.getDay();
+                                const columnDate = new Date(startOfWeek);
+                                columnDate.setDate(startOfWeek.getDate() + dayDiff);
 
                                 const formattedDate = columnDate.toISOString().split('T')[0];
+                                const sessionsForDay = groupedTimeSlots[formattedDate] || [];
 
                                 console.log("Checking for sessions on:", formattedDate);
                                 console.log("Available dates in groupedTimeSlots:", Object.keys(groupedTimeSlots));
@@ -151,8 +155,9 @@ const StudySchedule = () => {
 
                                 return (
                                     <div key={dayIndex} className={`schedule-day day-${dayIndex}`}>
-                                        <h3>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dayIndex]}</h3>
-                                        <h4>{columnDate.toDateString()}</h4>
+                                        <h3>
+                                            {columnDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </h3>
 
                                         {sessionsForDay.length > 0 ? (
                                             sessionsForDay.map((slot, i) => (

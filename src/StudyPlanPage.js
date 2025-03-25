@@ -73,8 +73,10 @@ const generateTimeOptions = () => {
 
                   const dayText = checkbox.parentNode.textContent.trim();
                   const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayText);
-                  const selectedDay = new Date(selectedDate);
-                  selectedDay.setDate(selectedDate.getDate() + ((dayIndex - selectedDate.getDay() + 7) % 7));
+                  const today = new Date();
+                  const daysUntilNext = (dayIndex - today.getDay() + 7) % 7;
+                  const selectedDay = new Date(today);
+                  selectedDay.setDate(today.getDate() + daysUntilNext);
 
                   const formattedDate = selectedDay.toISOString().split('T')[0];
 
