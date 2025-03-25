@@ -149,8 +149,6 @@ const StudySchedule = () => {
 
                                 console.log("Checking for sessions on:", formattedDate);
                                 console.log("Available dates in groupedTimeSlots:", Object.keys(groupedTimeSlots));
-
-                                const sessionsForDay = groupedTimeSlots[formattedDate] || [];
                                 console.log(`Rendering sessions for ${formattedDate}:`, sessionsForDay);
 
                                 return (
