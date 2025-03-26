@@ -5,6 +5,38 @@ import Navbar from './Navbar';
 import Calendar from 'react-calendar'; // Importing calendar package
 import 'react-calendar/dist/Calendar.css';
 
+//Generate an array of 48 half-hour time slots for 24 hours
+function generateTimeSlots24H() {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+        for (let half = 0; half < 2; half++) {
+            const displayHour = hour.toString().padStart(2, '0');
+            const displayMinute = half === 0 ? '00' : '30';
+            slots.push(`${displayHour}:${displayMinute}`);
+        }
+    }
+    return slots;
+}
+
+// Convert a "HH:MM AM/PM" string into total minutes from midnight
+function parseTimeToMinutes(timeStr) {
+    // e.g. "8:30 AM" -> 510
+    if (!timeStr || !timeStr.includes(' ')) return 0;
+    const [timePart, ampm] = timeStr.split(' ');
+    let [hour, minute] = timePart.split(':').map(n => parseInt(n, 10));
+
+    if (ampm.toUpperCase() === 'PM' && hour !== 12) {
+        hour += 12;
+    } else if (ampm.toUpperCase() === 'AM' && hour === 12) {
+        hour = 0;
+    }
+
+    return hour * 60 + minute;
+}
+
+
+
+
 const StudySchedule = () => {
 
     const navigate = useNavigate();

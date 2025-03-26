@@ -6,6 +6,43 @@
   gap: 20px;
   padding: 20px;
 }
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.schedule-table th,
+.schedule-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.schedule-table th {
+  background-color: #f4f4f4;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.schedule-table td {
+  vertical-align: middle;
+  min-width: 100px;
+  height: 40px;
+}
+
+/* Styling for the Time label column (first column) */
+.schedule-table td:first-child {
+  font-weight: bold;
+  background-color: #fafafa;
+  text-align: right;
+  padding-right: 10px;
+}
+
+/* Empty cell styling - adjust height as needed */
+.empty-slot {
+  height: 40px;
+}
 
 .study-session span {
   font-size: 12px;
@@ -17,18 +54,18 @@
 .study-session {
   position: relative;
   background-color: blue;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
+  color: #fff;
+  padding: 5px;
+  border-radius: 4px;
   text-align: center;
   font-size: 14px;
+  font-weight: bold;
   width: 90%;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: start;
-  grid-row: auto;
+  align-items: center;
 }
 
 .study-session strong {
@@ -58,53 +95,10 @@
   border-radius: 5px;
 }
 
-.schedule-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: auto;
-    gap: 5px;
-    border: 1px solid #ddd;
-    align-items: start;
-}
-
-
-.schedule-day {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 10px;
-    min-width: 120px;
-    text-align: left;
-    border: 1px solid #ccc;
-    background-color: #f9f9f9;
-    position: relative;
-}
-
-
-/* Dynamically set the column based on day index */
-.schedule-grid .schedule-day[data-day-index="0"] { grid-column: 1; } /* Sunday */
-.schedule-grid .schedule-day[data-day-index="1"] { grid-column: 2; } /* Monday */
-.schedule-grid .schedule-day[data-day-index="2"] { grid-column: 3; } /* Tuesday */
-.schedule-grid .schedule-day[data-day-index="3"] { grid-column: 4; } /* Wednesday */
-.schedule-grid .schedule-day[data-day-index="4"] { grid-column: 5; } /* Thursday */
-.schedule-grid .schedule-day[data-day-index="5"] { grid-column: 6; } /* Friday */
-.schedule-grid .schedule-day[data-day-index="6"] { grid-column: 7; } /* Saturday */
-
-
 .time-label {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 5px;
-}
-
-.time-slot {
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 10px;
-  font-weight: bold;
 }
 
 .schedule-content {
@@ -113,16 +107,6 @@
   min-height: 100%;
   padding: 5px;
 }
-
-.schedule-row {
-  display: flex;
-  align-items: center;
-  min-height: 60px;
-  border-bottom: 1px solid #ddd;
-  position: relative;
-  height: auto;
-}
-
 
 .study-plan-container {
    width: 100%;
