@@ -89,6 +89,15 @@ const generateTimeOptions = () => {
               }
           });
 
+          if (selectedDays.length > 0) {
+              // Sort the selected days by their formatted date (YYYY-MM-DD)
+              const sortedDays = selectedDays.slice().sort((a, b) => a.date.localeCompare(b.date));
+              // The earliest date will be the week start
+              const weekStart = sortedDays[0].date;
+              localStorage.setItem("WeekStartDate", weekStart);
+          }
+
+
           console.log("Sending request to backend:", JSON.stringify({
               subjects: subjectList.map(sub => sub.subject),
               priorities: subjectList.map(sub => sub.priority),
