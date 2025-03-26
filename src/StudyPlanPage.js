@@ -122,10 +122,17 @@ const generateTimeOptions = () => {
               }
 
               // Assign correct dates to each session
-              const formattedStudyPlan = data.studyPlan.map(session => ({
-                  ...session,
-                  date: selectedDays.find(day => day.day === session.day)?.date || null
-              }));
+              const formattedStudyPlan = data.studyPlan.map(session => {
+                  const matchedDay = selectedDays.find(
+                      day => day.day.trim().toLowerCase() === session.day.trim().toLowerCase()
+                  );
+
+                  return {
+                      ...session,
+                      date: matchedDay?.date || null
+                  };
+              });
+
 
               console.log("Storing Study Plan in local storage:", JSON.stringify(formattedStudyPlan));
               localStorage.setItem("StudyPlan", JSON.stringify(formattedStudyPlan));
