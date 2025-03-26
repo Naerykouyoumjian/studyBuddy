@@ -139,12 +139,19 @@ const StudySchedule = () => {
                         <div className="schedule-grid">
                             {[...Array(7)].map((_, dayIndex) => {
                                 const weekStartStr = localStorage.getItem("WeekStartDate");
-                                const startOfWeek = weekStartStr ? new Date(weekStartStr) : new Date();
-
+                                let startOfWeek;
+                                if (weekStartStr) {
+                                    // Split the "YYYY-MM-DD" string into components.
+                                    const [year, month, day] = weekStartStr.split('-');
+                                    // Create a new Date using local time (month is zero-indexed)
+                                    startOfWeek = new Date(year, month - 1, day);
+                                } else {
+                                    startOfWeek = new Date();
+                                }
                                 const columnDate = new Date(startOfWeek);
                                 columnDate.setDate(startOfWeek.getDate() + dayIndex);
 
-                                const formattedDate = columnDate.toISOString().split('T')[0];
+                                const formattedDate = columnDate.toLocaleDateString('en-CA');
                                 const sessionsForDay = groupedTimeSlots[formattedDate] || [];
 
                                 console.log("Checking for sessions on:", formattedDate);

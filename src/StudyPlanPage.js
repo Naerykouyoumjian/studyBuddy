@@ -78,7 +78,7 @@ const generateTimeOptions = () => {
                   const selectedDay = new Date(today);
                   selectedDay.setDate(today.getDate() + daysUntilNext);
 
-                  const formattedDate = selectedDay.toISOString().split('T')[0];
+                  const formattedDate = selectedDay.toLocaleDateString('en-CA');
 
                   selectedDays.push({
                       day: dayText,
