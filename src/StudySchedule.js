@@ -138,11 +138,16 @@ const StudySchedule = () => {
                     <div className="schedule-container">
                         <div className="schedule-grid">
                             {[...Array(7)].map((_, dayIndex) => {
-                                // Start of week (Sunday)
-                                const startOfWeek = new Date(selectedDate);
-                                const dayDiff = dayIndex - selectedDate.getDay();
+                                // Find the earliest date in the study plan
+                                const earliestDateStr = Object.keys(groupedTimeSlots).sort()[0] || new Date().toISOString().split('T')[0];
+                                const earliestDate = new Date(earliestDateStr);
+
+                                // Get the Sunday of that week
+                                const startOfWeek = new Date(earliestDate);
+                                startOfWeek.setDate(earliestDate.getDate() - earliestDate.getDay());
+
                                 const columnDate = new Date(startOfWeek);
-                                columnDate.setDate(startOfWeek.getDate() + dayDiff);
+                                columnDate.setDate(startOfWeek.getDate() + dayIndex);
 
                                 const formattedDate = columnDate.toISOString().split('T')[0];
                                 const sessionsForDay = groupedTimeSlots[formattedDate] || [];
