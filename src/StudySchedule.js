@@ -5,6 +5,22 @@ import Navbar from './Navbar';
 import Calendar from 'react-calendar'; // Importing calendar package
 import 'react-calendar/dist/Calendar.css';
 
+
+function convert24hTo12h(time24h) {
+    // time24h is like "00:00", "13:30", etc.
+    let [hour, minute] = time24h.split(':').map(n => parseInt(n, 10));
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12 || 12; // Convert 0 -> 12, 13 -> 1, etc.
+    return `${hour}:${minute.toString().padStart(2, '0')} ${ampm}`;
+}
+
+function convert24hToMinutes(time24h) {
+    // e.g. "00:30" -> 30, "13:00" -> 780
+    const [hour, minute] = time24h.split(':').map(n => parseInt(n, 10));
+    return hour * 60 + minute;
+}
+
+
 //Generate an array of 48 half-hour time slots for 24 hours
 function generateTimeSlots24H() {
     const slots = [];
@@ -168,53 +184,151 @@ const StudySchedule = () => {
                 <div className="schedule-content-wrapper">
                     {/* Schedule Section */}
                     <div className="schedule-container">
-                        <div className="schedule-grid">
-                            {[...Array(7)].map((_, dayIndex) => {
-                                const weekStartStr = localStorage.getItem("WeekStartDate");
-                                let startOfWeek;
-                                if (weekStartStr) {
-                                    // Split the "YYYY-MM-DD" string into components.
-                                    const [year, month, day] = weekStartStr.split('-');
-                                    // Create a new Date using local time (month is zero-indexed)
-                                    startOfWeek = new Date(year, month - 1, day);
-                                } else {
-                                    startOfWeek = new Date();
-                                }
-                                const columnDate = new Date(startOfWeek);
-                                columnDate.setDate(startOfWeek.getDate() + dayIndex);
+                    {/*    <div className="schedule-grid">*/}
+                    {/*        {[...Array(7)].map((_, dayIndex) => {*/}
+                    {/*            const weekStartStr = localStorage.getItem("WeekStartDate");*/}
+                    {/*            let startOfWeek;*/}
+                    {/*            if (weekStartStr) {*/}
+                    {/*                // Split the "YYYY-MM-DD" string into components.*/}
+                    {/*                const [year, month, day] = weekStartStr.split('-');*/}
+                    {/*                // Create a new Date using local time (month is zero-indexed)*/}
+                    {/*                startOfWeek = new Date(year, month - 1, day);*/}
+                    {/*            } else {*/}
+                    {/*                startOfWeek = new Date();*/}
+                    {/*            }*/}
+                    {/*            const columnDate = new Date(startOfWeek);*/}
+                    {/*            columnDate.setDate(startOfWeek.getDate() + dayIndex);*/}
 
-                                const formattedDate = columnDate.toLocaleDateString('en-CA');
-                                const sessionsForDay = groupedTimeSlots[formattedDate] || [];
+                    {/*            const formattedDate = columnDate.toLocaleDateString('en-CA');*/}
+                    {/*            const sessionsForDay = groupedTimeSlots[formattedDate] || [];*/}
 
-                                console.log("Checking for sessions on:", formattedDate);
-                                console.log("Available dates in groupedTimeSlots:", Object.keys(groupedTimeSlots));
-                                console.log(`Rendering sessions for ${formattedDate}:`, sessionsForDay);
+                    {/*            console.log("Checking for sessions on:", formattedDate);*/}
+                    {/*            console.log("Available dates in groupedTimeSlots:", Object.keys(groupedTimeSlots));*/}
+                    {/*            console.log(`Rendering sessions for ${formattedDate}:`, sessionsForDay);*/}
 
-                                return (
-                                    <div key={dayIndex} className={`schedule-day day-${dayIndex}`}>
-                                        <h3>
-                                            {columnDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
-                                        </h3>
+                    {/*            return (*/}
+                    {/*                <div key={dayIndex} className={`schedule-day day-${dayIndex}`}>*/}
+                    {/*                    <h3>*/}
+                    {/*                        {columnDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}*/}
+                    {/*                    </h3>*/}
 
-                                        {sessionsForDay.length > 0 ? (
-                                            sessionsForDay.map((slot, i) => (
-                                                <div key={i} className="schedule-row">
-                                                    <span className="time-label">
-                                                        {convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}
-                                                    </span>
-                                                    <div className="study-session">
-                                                        <strong>{slot.subject}</strong>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p className="empty-slot">No Sessions</p>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    {/*                    {sessionsForDay.length > 0 ? (*/}
+                    {/*                        sessionsForDay.map((slot, i) => (*/}
+                    {/*                            <div key={i} className="schedule-row">*/}
+                    {/*                                <span className="time-label">*/}
+                    {/*                                    {convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}*/}
+                    {/*                                </span>*/}
+                    {/*                                <div className="study-session">*/}
+                    {/*                                    <strong>{slot.subject}</strong>*/}
+                    {/*                                </div>*/}
+                    {/*                            </div>*/}
+                    {/*                        ))*/}
+                    {/*                    ) : (*/}
+                    {/*                        <p className="empty-slot">No Sessions</p>*/}
+                    {/*                    )}*/}
+                    {/*                </div>*/}
+                    {/*            );*/}
+                    {/*        })}*/}
+                    {/*    </div>*/}
+                        {/*</div>*/}
+
+
+                        <table className="schedule-table">
+                            <thead>
+                                <tr>
+                                    {/* First column: "Time" */}
+                                    <th>Time</th>
+                                    {/* Next 7 columns: each day from your stored weekStartDate */}
+                                    {[...Array(7)].map((_, dayIndex) => {
+                                        // Retrieve weekStart from localStorage
+                                        const weekStartStr = localStorage.getItem("WeekStartDate");
+                                        let startOfWeek;
+                                        if (weekStartStr) {
+                                            const [year, month, day] = weekStartStr.split('-');
+                                            startOfWeek = new Date(year, month - 1, day);
+                                        } else {
+                                            startOfWeek = new Date();
+                                        }
+
+                                        // Calculate this column's date
+                                        const columnDate = new Date(startOfWeek);
+                                        columnDate.setDate(startOfWeek.getDate() + dayIndex);
+
+                                        // Example: "Wed, Mar 26"
+                                        const dayLabel = columnDate.toLocaleDateString('en-US', {
+                                            weekday: 'short',
+                                            month: 'short',
+                                            day: 'numeric'
+                                        });
+
+                                        return <th key={dayIndex}>{dayLabel}</th>;
+                                    })}
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {generateTimeSlots24H().map((slot24h, slotIndex) => {
+                                    // slot24h is like "00:00", "00:30", ... "23:30"
+                                    // Convert it to e.g. "12:00 AM" for display if you like, or keep 24h format
+                                    // For checking sessions, we'll need to compare with parseTimeToMinutes(session.startTime).
+                                    // But let's first display the 24h label in the left column.
+
+                                    // Optionally, convert "00:00" to "12:00 AM" for display:
+                                    const displayTime = convert24hTo12h(slot24h); // We'll define this below
+
+                                    return (
+                                        <tr key={slotIndex}>
+                                            {/* Left column: the time label */}
+                                            <td>{displayTime}</td>
+
+                                            {/* Next 7 columns: each day */}
+                                            {[...Array(7)].map((_, dayIndex) => {
+                                                // Recompute the date for this column
+                                                const weekStartStr = localStorage.getItem("WeekStartDate");
+                                                let startOfWeek;
+                                                if (weekStartStr) {
+                                                    const [year, month, day] = weekStartStr.split('-');
+                                                    startOfWeek = new Date(year, month - 1, day);
+                                                } else {
+                                                    startOfWeek = new Date();
+                                                }
+                                                const columnDate = new Date(startOfWeek);
+                                                columnDate.setDate(startOfWeek.getDate() + dayIndex);
+                                                const formattedDate = columnDate.toLocaleDateString('en-CA'); // "YYYY-MM-DD"
+
+                                                // sessionsForDay from groupedTimeSlots
+                                                const sessionsForDay = groupedTimeSlots[formattedDate] || [];
+
+                                                // Check if any session covers this time slot
+                                                // We treat each row as a half-hour block. We'll see if
+                                                // parseTimeToMinutes(slot.startTime) <= currentSlot < parseTimeToMinutes(slot.endTime).
+
+                                                const slotMinutes = convert24hToMinutes(slot24h); // We'll define this below
+                                                // We'll see if there's exactly one session that covers it
+                                                const sessionHere = sessionsForDay.find((sess) => {
+                                                    const startMins = parseTimeToMinutes(sess.startTime);
+                                                    const endMins = parseTimeToMinutes(sess.endTime);
+                                                    return slotMinutes >= startMins && slotMinutes < endMins;
+                                                });
+
+                                                return (
+                                                    <td key={dayIndex} className="schedule-cell">
+                                                        {sessionHere ? (
+                                                            <div className="study-session">
+                                                                <strong>{sessionHere.subject}</strong>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="empty-slot"></div>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+
 
                     {/* Calendar Section */}
                     <div className="calendar-section">
