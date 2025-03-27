@@ -57,19 +57,19 @@ const StudySchedule = () => {
 
     const navigate = useNavigate();
 
-    const convertToAMPM = (time) => {
-        if (!time || typeof time !== "string" || !time.includes(":")) return "Invalid Time";
+    //const convertToAMPM = (time) => {
+    //    if (!time || typeof time !== "string" || !time.includes(":")) return "Invalid Time";
 
-        let [hour, minute] = time.split(":");
-        hour = parseInt(hour, 10);
-        minute = parseInt(minute, 10);
+    //    let [hour, minute] = time.split(":");
+    //    hour = parseInt(hour, 10);
+    //    minute = parseInt(minute, 10);
 
-        let period = hour >= 12 ? "PM" : "AM";
-        if (hour > 12) hour -= 12;
-        if (hour === 0) hour = 12; // Midnight case
+    //    let period = hour >= 12 ? "PM" : "AM";
+    //    if (hour > 12) hour -= 12;
+    //    if (hour === 0) hour = 12; // Midnight case
 
-        return `${hour}:${String(minute).padStart(2, '0')} ${period}`;
-    };
+    //    return `${hour}:${String(minute).padStart(2, '0')} ${period}`;
+    //};
 
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [studyPlan, setStudyPlan] = useState(() => {

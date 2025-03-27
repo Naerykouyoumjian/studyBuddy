@@ -89,6 +89,9 @@ const generateTimeOptions = () => {
               }
           });
 
+          console.log("Selected days:", selectedDays);
+
+
           if (selectedDays.length > 0) {
               // Sort the selected days by their formatted date (YYYY-MM-DD)
               const sortedDays = selectedDays.slice().sort((a, b) => a.date.localeCompare(b.date));
