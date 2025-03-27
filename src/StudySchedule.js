@@ -230,7 +230,7 @@ const StudySchedule = () => {
                     {/*            );*/}
                     {/*        })}*/}
                     {/*    </div>*/}
-                        {/*</div>*/}
+                        </div>
 
 
                         <table className="schedule-table">
@@ -346,5 +346,5 @@ const StudySchedule = () => {
         </>
     );
 };
-
+          
 export default StudySchedule;
