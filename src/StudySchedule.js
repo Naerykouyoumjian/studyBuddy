@@ -183,7 +183,7 @@ const StudySchedule = () => {
             <div className="schedule-page">
                 <div className="schedule-content-wrapper">
                     {/* Schedule Section */}
-                    <div className="schedule-container">
+                    {/* <div className="schedule-container">*/}
                     {/*    <div className="schedule-grid">*/}
                     {/*        {[...Array(7)].map((_, dayIndex) => {*/}
                     {/*            const weekStartStr = localStorage.getItem("WeekStartDate");*/}
@@ -230,7 +230,7 @@ const StudySchedule = () => {
                     {/*            );*/}
                     {/*        })}*/}
                     {/*    </div>*/}
-                        </div>
+                    {/* </div>*/}
 
 
                         <table className="schedule-table">
