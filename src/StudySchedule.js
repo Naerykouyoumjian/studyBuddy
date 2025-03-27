@@ -51,27 +51,11 @@ function parseTimeToMinutes(timeStr) {
 }
 
 
-
-
 const StudySchedule = () => {
 
     const navigate = useNavigate();
-
-    //const convertToAMPM = (time) => {
-    //    if (!time || typeof time !== "string" || !time.includes(":")) return "Invalid Time";
-
-    //    let [hour, minute] = time.split(":");
-    //    hour = parseInt(hour, 10);
-    //    minute = parseInt(minute, 10);
-
-    //    let period = hour >= 12 ? "PM" : "AM";
-    //    if (hour > 12) hour -= 12;
-    //    if (hour === 0) hour = 12; // Midnight case
-
-    //    return `${hour}:${String(minute).padStart(2, '0')} ${period}`;
-    //};
-
     const [selectedDate, setSelectedDate] = useState(new Date());
+
     const [studyPlan, setStudyPlan] = useState(() => {
         const storedPlan = localStorage.getItem("StudyPlan");
         return storedPlan ? JSON.parse(storedPlan) : null;
@@ -172,6 +156,15 @@ const StudySchedule = () => {
         }
     };
 
+    //Delete plan 
+    const handleDeletePlan = () => {
+        if (window.confirm("Are you sure you want to delete the plan?")) {
+            localStorage.removeItem("StudyPlan");
+            localStorage.removeItem("WeekStartDate");
+            navigate("/study-plan"); 
+        }
+    };
+
     const handleDateChange = (date) => {
         setSelectedDate(date);
     };
@@ -182,57 +175,6 @@ const StudySchedule = () => {
 
             <div className="schedule-page">
                 <div className="schedule-content-wrapper">
-                    {/* Schedule Section */}
-                    {/* <div className="schedule-container">*/}
-                    {/*    <div className="schedule-grid">*/}
-                    {/*        {[...Array(7)].map((_, dayIndex) => {*/}
-                    {/*            const weekStartStr = localStorage.getItem("WeekStartDate");*/}
-                    {/*            let startOfWeek;*/}
-                    {/*            if (weekStartStr) {*/}
-                    {/*                // Split the "YYYY-MM-DD" string into components.*/}
-                    {/*                const [year, month, day] = weekStartStr.split('-');*/}
-                    {/*                // Create a new Date using local time (month is zero-indexed)*/}
-                    {/*                startOfWeek = new Date(year, month - 1, day);*/}
-                    {/*            } else {*/}
-                    {/*                startOfWeek = new Date();*/}
-                    {/*            }*/}
-                    {/*            const columnDate = new Date(startOfWeek);*/}
-                    {/*            columnDate.setDate(startOfWeek.getDate() + dayIndex);*/}
-
-                    {/*            const formattedDate = columnDate.toLocaleDateString('en-CA');*/}
-                    {/*            const sessionsForDay = groupedTimeSlots[formattedDate] || [];*/}
-
-                    {/*            console.log("Checking for sessions on:", formattedDate);*/}
-                    {/*            console.log("Available dates in groupedTimeSlots:", Object.keys(groupedTimeSlots));*/}
-                    {/*            console.log(`Rendering sessions for ${formattedDate}:`, sessionsForDay);*/}
-
-                    {/*            return (*/}
-                    {/*                <div key={dayIndex} className={`schedule-day day-${dayIndex}`}>*/}
-                    {/*                    <h3>*/}
-                    {/*                        {columnDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}*/}
-                    {/*                    </h3>*/}
-
-                    {/*                    {sessionsForDay.length > 0 ? (*/}
-                    {/*                        sessionsForDay.map((slot, i) => (*/}
-                    {/*                            <div key={i} className="schedule-row">*/}
-                    {/*                                <span className="time-label">*/}
-                    {/*                                    {convertToAMPM(slot.startTime)} - {convertToAMPM(slot.endTime)}*/}
-                    {/*                                </span>*/}
-                    {/*                                <div className="study-session">*/}
-                    {/*                                    <strong>{slot.subject}</strong>*/}
-                    {/*                                </div>*/}
-                    {/*                            </div>*/}
-                    {/*                        ))*/}
-                    {/*                    ) : (*/}
-                    {/*                        <p className="empty-slot">No Sessions</p>*/}
-                    {/*                    )}*/}
-                    {/*                </div>*/}
-                    {/*            );*/}
-                    {/*        })}*/}
-                    {/*    </div>*/}
-                    {/* </div>*/}
-
-
                         <table className="schedule-table">
                             <thead>
                                 <tr>
@@ -268,13 +210,7 @@ const StudySchedule = () => {
 
                             <tbody>
                                 {generateTimeSlots24H().map((slot24h, slotIndex) => {
-                                    // slot24h is like "00:00", "00:30", ... "23:30"
-                                    // Convert it to e.g. "12:00 AM" for display if you like, or keep 24h format
-                                    // For checking sessions, we'll need to compare with parseTimeToMinutes(session.startTime).
-                                    // But let's first display the 24h label in the left column.
-
-                                    // Optionally, convert "00:00" to "12:00 AM" for display:
-                                    const displayTime = convert24hTo12h(slot24h); // We'll define this below
+                                    const displayTime = convert24hTo12h(slot24h); 
 
                                     return (
                                         <tr key={slotIndex}>
@@ -299,12 +235,7 @@ const StudySchedule = () => {
                                                 // sessionsForDay from groupedTimeSlots
                                                 const sessionsForDay = groupedTimeSlots[formattedDate] || [];
 
-                                                // Check if any session covers this time slot
-                                                // We treat each row as a half-hour block. We'll see if
-                                                // parseTimeToMinutes(slot.startTime) <= currentSlot < parseTimeToMinutes(slot.endTime).
-
-                                                const slotMinutes = convert24hToMinutes(slot24h); // We'll define this below
-                                                // We'll see if there's exactly one session that covers it
+                                                const slotMinutes = convert24hToMinutes(slot24h); 
                                                 const sessionHere = sessionsForDay.find((sess) => {
                                                     const startMins = parseTimeToMinutes(sess.startTime);
                                                     const endMins = parseTimeToMinutes(sess.endTime);
@@ -339,7 +270,7 @@ const StudySchedule = () => {
                             className="custom-calendar"
                         />
                         <button className="save-plan" onClick={handleSavePlan}>Save Plan</button>
-                        <button className="delete-plan">Delete Plan</button>
+                        <button className="delete-plan" onClick={handleDeletePlan}>Delete Plan</button>
                     </div>
                 </div>
             </div>

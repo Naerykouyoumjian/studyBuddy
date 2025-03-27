@@ -30,11 +30,11 @@
   font-weight: bold;
 }
 
-.schedule-table td {
+/*.schedule-table td {
   vertical-align: middle;
   min-width: 100px;
   height: 40px;
-}
+}*/
 
 .schedule-table td:first-child {
   font-weight: bold;
