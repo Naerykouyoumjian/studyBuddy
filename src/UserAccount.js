@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 function UserAccount() {
     //Declare state variables
+    const [userId, setUserId]             = useState(0);
     const [firstName, setFirstName]       = useState("");
     const [lastName, setLastName]         = useState("");
     const [email, setEmail]               = useState("");
@@ -26,13 +27,15 @@ function UserAccount() {
         if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
             try {
                 const userData = JSON.parse(storedUser);
+                console.log(`user id: ${userData.userId}`);
+                setUserId(userData.userId || 0);
                 setFirstName(userData.firstName || "");
                 setLastName(userData.lastName || "");
                 setEmail(userData.email || "");
                 // Optionally set notifications from userData if stored:
-                // setNotificationEnabled(userData.notificationEnabled === true);
-                // setDeadlineOffset(userData.deadlineOffset || "1day");
-                // setScheduleOffset(userData.scheduleOffset || "1hour");
+                setNotificationEnabled(userData.notificationEnabled  || false);
+                setDeadlineOffset(userData.deadlineOffset === "never" ? "1day" : userData.deadlineOffset);
+                setScheduleOffset(userData.scheduleOffset === "never" ? "1hour" : userData.scheduleOffset);
             } catch (error) {
                 console.error("Error parsing user data from localStorage:", error);
             }
@@ -53,6 +56,7 @@ function UserAccount() {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    userId,
                     email,
                     firstName,
                     lastName,
@@ -69,10 +73,14 @@ function UserAccount() {
             if (result.success) {
                 console.log('User updated successfully');
                 // Update localStorage with new user details
-                localStorage.setItem('user', JSON.stringify({
+                localStorage.setItem('user', JSON.stringify(
+                    result.user
+                    /*{
                     firstName, lastName, email
                     // notificationEnabled, deadlineOffset, scheduleOffset
-                }));
+                    }*/
+                ));
+                console.log("User Data Stored:", localStorage.getItem('user')); 
                 alert('User information updated successfully!');
             } else {
                 alert(result.message);
@@ -200,12 +208,15 @@ function UserAccount() {
                                 <label className='notif-label'>Deadline Notification:</label>
                                 <select
                                     value={deadlineOffset}
-                                    onChange={(e) => setDeadlineOffset(e.target.value)}
+                                    onChange={(e) => {
+                                        setDeadlineOffset(e.target.value);
+                                        console.log(`Deadline offset: ${e.target.value}`);
+                                    }}
                                 >
-                                    <option value="1day">Never</option>
+                                    <option value="never">Never</option>
                                     <option value="1day">1 day before</option>
                                     <option value="2day">2 days before</option>
-                                    <option value="3day">5 days before</option>
+                                    <option value="5day">5 days before</option>
                                     <option value="1week">1 week before</option>
                                 </select>
                             </div>
@@ -214,11 +225,14 @@ function UserAccount() {
                                 <label className='notif-label'>Schedule Notification:</label>
                                 <select
                                     value={scheduleOffset}
-                                    onChange={(e) => setScheduleOffset(e.target.value)}
+                                    onChange={(e) => { 
+                                        setScheduleOffset(e.target.value);
+                                        console.log(`Schedule offset: ${e.target.value}`);
+                                    }}
                                 >
-                                    <option value="1day">Never</option>
+                                    <option value="never">Never</option>
                                     <option value="1hour">1 hour before</option>
-                                    <option value="6hour">3 hours before</option>
+                                    <option value="3hour">3 hours before</option>
                                     <option value="12hour">12 hours before</option>
                                     <option value="1day">1 day before</option>
                                     <option value="3day">3 days before</option>
