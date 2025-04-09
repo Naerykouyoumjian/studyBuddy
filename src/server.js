@@ -548,6 +548,30 @@ app.put('/update-user', (req, res) => {
   });
 });
 
+//Delete study plan
+app.delete('/delete-study-plan/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+      return res.status(400).json({ success: false, message: 'Missing study plan ID' });
+  }
+
+  try {
+      const deleteQuery = 'DELETE FROM studyPlans WHERE id = ?';
+      const [result] = await db.promise().query(deleteQuery, [id]);
+
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ success: false, message: 'Study plan not found' });
+      }
+
+      res.status(200).json({ success: true, message: 'Study plan deleted successfully' });
+  } catch (error) {
+      console.error('Error deleting study plan:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete study plan' });
+  }
+});
+
+
 app.delete('/delete-user', (req, res) =>{
     const { id } = req.body;
     if (!id) {
