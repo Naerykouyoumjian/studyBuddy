@@ -37,10 +37,10 @@ emailServer.post("/reset-password-email", async (req, res) => {
 
     //generating random token to associate with the user
     const token = crypto.randomBytes(20).toString('hex');
-    //setting expiration date 1 hour after request is made
+    //setting experation date 1 hour after request is made
     const expiration = new Date(Date.now() + 3600000);
     
-    //formatting expiration date to match DATETIME datatype in our database
+    //formatting experation date to match DATETIME datatype in our database
     const formattedExp = expiration.toISOString().slice(0,19).replace('T', ' ');
     
     const userInfo = {email, token, formattedExp};

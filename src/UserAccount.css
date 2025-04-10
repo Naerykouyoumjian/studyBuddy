@@ -164,27 +164,3 @@ font-weight: bold;
 width: 20px;
 height: 20px;
 }
-
-/*If set to ON, we show two dropdowns side by side */
-.notification-dropdowns {
-    display: flex;
-    gap: 2rem;
-    margin-left: 10px;   /* so they line up with the main box above */
-    margin-bottom: 2rem;
-}
-  
-.notification-dropdown {
-    display: flex;
-    flex-direction: column;
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    width: fit-content;
-}
-
-.notif-label {
-    font-weight: bold;
-    color: #4b0082;
-    margin-bottom: 0.5rem;
-}

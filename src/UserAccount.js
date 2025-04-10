@@ -5,25 +5,18 @@ import { useNavigate } from 'react-router-dom';
 
 function UserAccount() {
     //Declare state variables
-    const [userId, setUserId]                       = useState(0);
-    const [firstName, setFirstName]             = useState("");
-    const [lastName, setLastName]               = useState("");
-    const [email, setEmail]                     = useState("");
+    const [id, setId] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
     const [currentPassword, setCurrentPassword] = useState("");
-    const [newPassword, setNewPassword]         = useState("");
+    const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    
-    // Notification toggle
     const [notificationEnabled, setNotificationEnabled] = useState(false);
-
-    // Separate dropdowns for deadlines/ schedules
-    const [deadlineOffset, setDeadlineOffset] = useState("1day");
-    const [scheduleOffset, setScheduleOffset] = useState("1hour");
-    
+    const navigate = useNavigate();
     const [isEditingFirstName, setIsEditingFirstName] = useState(false);
     const [isEditingLastName, setIsEditingLastName] = useState(false);
-    
-    const navigate = useNavigate();
+
 
 
     // Load user data from localStorage
@@ -32,15 +25,10 @@ function UserAccount() {
         if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
             try {
                 const userData = JSON.parse(storedUser);
-                setUserId(userData.id || 0);
+                setId(userData.id || "");
                 setFirstName(userData.firstName || "");
                 setLastName(userData.lastName || "");
                 setEmail(userData.email || "");
-
-                // Optionally set notifications from userData if stored:
-                setNotificationEnabled(userData.notificationEnabled  || false);
-                setDeadlineOffset(userData.deadlineOffset === "never" ? "1day" : userData.deadlineOffset);
-                setScheduleOffset(userData.scheduleOffset === "never" ? "1hour" : userData.scheduleOffset);
             } catch (error) {
                 console.error("Error parsing user data from localStorage:", error);
             }
@@ -50,12 +38,6 @@ function UserAccount() {
     }, []);
 
     const handleSaveChanges = async () => {
-        // If user wants to change password, check match
-        if (newPassword && newPassword !== confirmPassword) {
-            alert("New password and confirm password do not match.");
-            return;
-        }
-
         try {
             const backendURL = process.env.REACT_APP_BACKEND_URL;
             console.log("Backend URL: ", backendURL);
@@ -63,15 +45,12 @@ function UserAccount() {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId,
+                    id,
                     email,
                     firstName,
                     lastName,
                     currentPassword,
-                    newPassword,
-                    notificationEnabled,
-                    deadlineOffset,
-                    scheduleOffset
+                    newPassword
                 })
             });
     
@@ -79,10 +58,7 @@ function UserAccount() {
             if (result.success) {
                 console.log('User updated successfully');
                 // Update localStorage with new user details
-                localStorage.setItem('user', JSON.stringify(
-                    result.user
-                    //{ id, firstName, lastName, email }
-                ));
+                localStorage.setItem('user', JSON.stringify({ id, firstName, lastName, email }));
                 alert('User information updated successfully!');
                 setIsEditingFirstName(false);
                 setIsEditingLastName(false);
@@ -98,7 +74,7 @@ function UserAccount() {
 
     const handleDeleteUser = async () => {
         try{
-            if (!userId || isNaN(userId)) {
+            if (!id || isNaN(id)) {
                 alert("Invalid user ID. Cannot delete account.");
                 return;
             }
@@ -216,7 +192,6 @@ function UserAccount() {
                 </div>
                 </div>
 
-                {/* Notification Settings */}
                 <h2 className= 'section-title'> Notification Settings</h2>
                     <div className='notification-section'>
                     <label>ON/OFF:</label>
@@ -226,46 +201,6 @@ function UserAccount() {
                     onChange={() => setNotificationEnabled(!notificationEnabled)}
                     />
                     </div>
-                    {/* If ON, show two dropdowns for deadline + schedule */}
-                    {notificationEnabled && (
-                        <div className='notification-dropdowns'>
-                            <div className='notification-dropdown'>
-                                <label className='notif-label'>Deadline Notification:</label>
-                                <select
-                                    value={deadlineOffset}
-                                    onChange={(e) => {
-                                        setDeadlineOffset(e.target.value);
-                                        console.log(`Deadline offset: ${e.target.value}`);
-                                    }}
-                                >
-                                    <option value="never">Never</option>
-                                    <option value="1day">1 day before</option>
-                                    <option value="2day">2 days before</option>
-                                    <option value="5day">5 days before</option>
-                                    <option value="1week">1 week before</option>
-                                </select>
-                            </div>
-
-                            <div className='notification-dropdown'>
-                                <label className='notif-label'>Schedule Notification:</label>
-                                <select
-                                    value={scheduleOffset}
-                                    onChange={(e) => { 
-                                        setScheduleOffset(e.target.value);
-                                        console.log(`Schedule offset: ${e.target.value}`);
-                                    }}
-                                >
-                                    <option value="never">Never</option>
-                                    <option value="1hour">1 hour before</option>
-                                    <option value="3hour">3 hours before</option>
-                                    <option value="12hour">12 hours before</option>
-                                    <option value="1day">1 day before</option>
-                                    <option value="3day">3 days before</option>
-                                    <option value="1week">1 week before</option>
-                                </select>
-                            </div>
-                        </div>
-                    )}
 
                     {/*button style*/}
                     <div className='buttons-container'>
