@@ -16,8 +16,8 @@ function UserAccount() {
     // Notification toggle
     const [notificationEnabled, setNotificationEnabled] = useState(false);
     // Separate dropdowns for deadline / schedule
-    const [deadlineOffset, setDeadlineOffset]   = useState("1day");
-    const [scheduleOffset, setScheduleOffset]   = useState("1hour");
+    const [deadlineOffset, setDeadlineOffset]   = useState("never");
+    const [scheduleOffset, setScheduleOffset]   = useState("never");
 
     const navigate = useNavigate();
 
@@ -34,8 +34,8 @@ function UserAccount() {
                 setEmail(userData.email || "");
                 // Optionally set notifications from userData if stored:
                 setNotificationEnabled(userData.notificationEnabled  || false);
-                setDeadlineOffset(userData.deadlineOffset === "never" ? "1day" : userData.deadlineOffset);
-                setScheduleOffset(userData.scheduleOffset === "never" ? "1hour" : userData.scheduleOffset);
+                setDeadlineOffset(userData.deadlineOffset);
+                setScheduleOffset(userData.scheduleOffset);
             } catch (error) {
                 console.error("Error parsing user data from localStorage:", error);
             }
@@ -97,7 +97,7 @@ function UserAccount() {
                 const response = await fetch('http://localhost:3001/delete-user', {
                     method: 'DELETE',
                     headers: {'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
+                    body: JSON.stringify({ email, userId: parseInt(userId, 10) })
                 });
 
                 const result = await response.json();

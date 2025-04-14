@@ -394,11 +394,15 @@ function CreateToDoList() {
       const user = JSON.parse(localStorage.getItem('user'));
       // gets user id from user info
       const userId = user ? user.userId : null;
+      const firstName = user ? user.firstName : null;
+      const email = user ? user.email : null;
+      const deadlineOffset = user ? user.deadlineOffset : null;
+      const notificationEnabled = user ? user.notificationEnabled : null;
       // post request to save the todo list
       const response = await fetch("http://localhost:3001/save-todo", {
         method: "POST",
         headers: {"Content-Type" : "application/json"},
-        body: JSON.stringify({listName, tasks, taskDates, userId})
+        body: JSON.stringify({ firstName, email, listName, tasks, taskDates, userId, deadlineOffset, notificationEnabled})
       });
 
       // getting results from test

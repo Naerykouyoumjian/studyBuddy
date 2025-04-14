@@ -194,7 +194,7 @@ You should write this in the Mysql workbench to work
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     firstName VARCHAR(50) NOT NULL,
-    lasttName VARCHAR(50) NOT NULL,
+    lastName VARCHAR(50) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -296,7 +296,7 @@ app.put('/update-user', async (req, res) => {
     lastName: ${lastName}
     currentPassword: ${currentPassword}
     newPassword: ${newPassword}
-    notifs enabled: ${notificationEnabled}
+    notifications enabled: ${notificationEnabled}
     deadlineOffset: ${deadlineOffset}
     scheduleOffset: ${scheduleOffset}`
   );
@@ -311,9 +311,10 @@ app.put('/update-user', async (req, res) => {
 
     const user = userResults[0];
 
+    const passwordUpdated = currentPassword && newPassword;
     // If password is to be changed, check current password
     let hashedPassword;
-    if (currentPassword && newPassword) {
+    if (passwordUpdated) {
         const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
         if (!isMatch) {
             return res.status(400).json({ success: false, message: 'Current password is incorrect' });
@@ -323,15 +324,49 @@ app.put('/update-user', async (req, res) => {
         const saltRounds = 10;
         hashedPassword = await bcrypt.hash(newPassword, saltRounds);
     }
-    // Update user with new password
-    try{
-      const updateQuery = currentPassword && newPassword 
-      ? 'UPDATE users SET first_name = ?, last_name = ?, password_hash = ?, notification_enabled = ? WHERE email = ?'
-      : 'UPDATE users SET first_name = ?, last_name = ?, notification_enabled = ? WHERE email = ?';
 
-      const updateQueryParams = currentPassword && newPassword
+    const firstNameUpdated = user.firstName === firstName ? false : true;
+    const lastNameUpdated = user.lastName === lastName ? false : true;
+    const notifsUpdated = user.notificationEnabled === notificationEnabled ? false : true;
+
+    const deadlineOffsetQuery = 'SELECT deadline_alert_timing FROM notification_preferences WHERE user_id = ?';
+    const deadlineOffsetResults = await db.promise().query(deadlineOffsetQuery, [userId]);
+    const deadlineOffsetUpdated = deadlineOffsetResults[0].deadline_alert_timing === deadlineOffset ? false : true;
+
+    // Update user with new password
+    let updateParams = [];
+    let updateQueryParams = [];
+
+    if(firstNameUpdated){
+      updateParams.push("first_name = ?");
+      updateQueryParams.push(firstName);
+    }
+
+    if(lastNameUpdated){
+      updateParams.push("last_name = ?");
+      updateQueryParams.push(lastName);
+    }
+
+    if(passwordUpdated){
+      updateParams.push("password_hash = ?");
+      updateQueryParams.push(hashedPassword);
+    }
+
+    if(notifsUpdated){
+      updateParams.push("notification_enabled = ?");
+      updateQueryParams.push(notificationEnabled ? 1 : 0);
+    }
+    updateQueryParams.push(email);
+
+    try{
+      const updateQuery =  `UPDATE users SET ${updateParams.join(", ")} WHERE email = ?`;
+      /*const updateQuery = passwordUpdated 
+      ? 'UPDATE users SET first_name = ?, last_name = ?, password_hash = ?, notification_enabled = ? WHERE email = ?'
+      : 'UPDATE users SET first_name = ?, last_name = ?, notification_enabled = ? WHERE email = ?';*/
+
+      /*const updateQueryParams = currentPassword && newPassword
       ? [firstName, lastName, hashedPassword, notificationEnabled ? 1 : 0, email]
-      : [firstName, lastName, notificationEnabled ? 1 : 0, email];
+      : [firstName, lastName, notificationEnabled ? 1 : 0, email];*/
 
       await db.promise().query(updateQuery, updateQueryParams);
     }catch(updateErr){
@@ -340,14 +375,92 @@ app.put('/update-user', async (req, res) => {
 
     try{
       const notifQuery = 'UPDATE notification_preferences SET deadline_alert_timing = ?, schedule_alert_timing = ? WHERE user_id = ?';
-      const notifParams = notificationEnabled 
-      ? [deadlineOffset, scheduleOffset, userId]
-      : ['never', 'never', userId];
+      const notifParams = notificationEnabled ? [deadlineOffset, scheduleOffset, userId] : ['never', 'never', userId];
       
       await db.promise().query(notifQuery, notifParams);
+
+      // get data for notifications that need to be scheduled
+      const deadlinesQuery = 'SELECT task_id, list_name, task_description, deadline FROM todo_lists INNER JOIN tasks on todo_lists.list_id = tasks.list_id WHERE user_id = ? AND deadline IS NOT NULL AND deadline >= CURRENT_DATE AND completed = 0';
+      const [deadlines] = await db.promise().query(deadlinesQuery, [userId]);
+      if(deadlines.length === 0){
+        return res.status(404).json({ success: false, message: 'Notification details could not be obtained' });
+      }
+
+      if(notifsUpdated){
+        for(const deadline of deadlines){
+          deadlineEmailInfo = {
+            firstName, 
+            taskId: deadline.task_id, 
+            listName: deadline.list_name,
+            email, 
+            taskDescription: deadline.task_description, 
+            deadline: deadline.deadline, 
+            offset: deadlineOffset
+          }
+
+          // schedule all deadline emails
+          if(notificationEnabled){
+            const scheduleEmail = await fetch("http://localhost:3002/create-task", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify(deadlineEmailInfo)
+            });
+            const result = await scheduleEmail.json();
+              if(result.success){
+                  console.log(result.message);
+              }else{
+                  console.error(result.message);
+            }
+            // unschedule all deadline emails
+          }else{
+            const cancelEmail = await fetch("http://localhost:3002/delete-task-notification",{
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({taskId: deadlineEmailInfo.taskId})
+            });
+
+            const result = await cancelEmail.json();
+            if(result.success){
+              console.log(result.message);
+            }else{
+              console.error(result.message);
+            }
+          }
+                
+        }
+        
+      }else if(!notifsUpdated && deadlineOffsetUpdated){
+        for(const deadline of deadlines){
+          deadlineEmailInfo = {
+            firstName, 
+            taskId: deadline.task_id, 
+            listName: deadline.list_name,
+            email, 
+            taskDescription: deadline.task_description, 
+            deadline: deadline.deadline, 
+            offset: deadlineOffset
+          }
+
+          console.log(`task id: ${deadlineEmailInfo.taskId}`);
+          const rescheduleEmail = await fetch("http://localhost:3002/reschedule-email",{
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(deadlineEmailInfo)
+          });
+
+          const result = await rescheduleEmail.json();
+          if(result.success){
+            console.log(result.message);
+          }else{
+            console.error(result.message);
+          }
+        }
+      }
     }catch(notifErr){
       return res.status(500).json({success: false, message: "Failed to update Notification Preferences"});
     }
+
+
 
     const [updatedUserResults] = await db.promise().query(query, [email]);
     const updatedUser = updatedUserResults[0];
@@ -370,12 +483,33 @@ app.put('/update-user', async (req, res) => {
   }
 });
 
-app.delete('/delete-user', (req, res) =>{
-  const {email} = req.body;
-  console.log('Email: ', email);
-  const query = 'DELETE FROM users WHERE email = ?';
+app.delete('/delete-user', async (req, res) =>{
+  const {email, userId} = req.body;
+  if (!userId) {
+    return res.status(400).json({ success: false, message: 'User ID is required to delete an account.' });
+}
 
-  db.query(query, [email], (err, result) =>{
+  const deadlinesQuery = 'SELECT task_id FROM todo_lists INNER JOIN tasks on todo_lists.list_id = tasks.list_id WHERE user_id = ? AND deadline IS NOT NULL AND deadline >= CURRENT_DATE AND completed = 0';
+  const [deadlines] = await db.promise().query(deadlinesQuery, [userId]);
+
+  for(const deadline of deadlines){
+    const deleteEmail = await fetch("http://localhost:3002/delete-task-notification",{
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({taskId: deadline.task_id})
+    });
+
+    const result = await deleteEmail.json();
+    if(result.success){
+      console.log(result.message);
+    }else{
+      console.error(result.message);
+    }
+  }
+
+  const query = 'DELETE FROM users WHERE id = ?';
+
+  db.query(query, [userId], (err, result) =>{
       if(err){
         console.error('Error executing the delete query: ', err);
         res.status(500).json({success: false, message: 'Failed to delete user profile, please try again later'});
@@ -392,8 +526,8 @@ app.delete('/delete-user', (req, res) =>{
 
 // Saves a newly created to-do list
 app.post('/save-todo', async (req, res) =>{
-  // gettint list info from request
-  const{ listName, tasks, taskDates, userId} = req.body;
+  // getting list info from request
+  const{firstName, email, listName, tasks, taskDates, userId, deadlineOffset, notificationEnabled} = req.body;
   // starting transaction so all queries succeed or fail together
   db.beginTransaction((transErr) =>{
     // error starting transaction
@@ -418,28 +552,53 @@ app.post('/save-todo', async (req, res) =>{
       
       // maps a promise for each task in the task array
       const taskPromises = tasks.map((taskDescription, index) =>{
-        let deadline;
-
-        // checks if the task has a deadline
-        if(taskDates[index] != null){
-          // formats date to match database formatting
-          deadline = taskDates[index].slice(0,10);
-        }else{
-          deadline = null;
-        }
-        // makes a promise to complete (or fail) the insertion of each task 
         return new Promise ((resolve, reject) =>{
-          db.query(addTaskQuery, [listId, taskDescription, deadline, index + 1], (taskErr, result) =>{
-            // if an error occurrs while adding a task the promise for that task is rejected
-            if(taskErr){
-              return reject(taskErr);
-            }
-            resolve(result)
+          let deadline = null;
+
+          // checks if the task has a deadline
+          if(taskDates[index] != null){
+            // formats date to match database formatting
+            deadline = taskDates[index].slice(0,10);
+          }
+          // makes a promise to complete (or fail) the insertion of each task 
+        
+            db.query(addTaskQuery, [listId, taskDescription, deadline, index + 1], async (taskErr, result) =>{
+              // if an error occurs while adding a task the promise for that task is rejected
+              if(taskErr){
+                return reject(taskErr);
+              }
+              if(notificationEnabled){
+                const taskId = result.insertId;
+                if(deadline && new Date(deadline).setHours(0, 0, 0, 0) >= new Date().setHours(0, 0, 0, 0)){
+                  try{
+                    const scheduleEmail = await fetch ("http://localhost:3002/create-task" ,{
+                      method: "POST",
+                      headers: {"Content-Type" : "application/json"},
+                      body: JSON.stringify({
+                        firstName,
+                        taskId,
+                        listName,
+                        email,
+                        taskDescription,
+                        deadline,
+                        offset: deadlineOffset
+                      }),
+                    });
+                    const emailResult = await scheduleEmail.json();
+                    if(!emailResult.success){
+                      console.error(`Failed to schedule email for task ${taskId}: ${emailResult.message}`);
+                    }
+                  }catch(emailErr){
+                    console.error(`Error scheduling email for task ${taskId}:`, emailErr);
+                  }
+                }
+              }
+              resolve(result)
+            });
           });
-        });
       });
 
-      // Makes sure all promises were fufiled before commiting
+      // Makes sure all promises were fulfilled before committing
       Promise.all(taskPromises).then(() => {
         // attempts to commit 
         db.commit((commitErr) => {
@@ -459,11 +618,7 @@ app.post('/save-todo', async (req, res) =>{
           res.status(500).json({success: false, message: 'The To-Do List could not be added at this time due to issues adding a task, please try again later.'});
         });
       });
-
-
-
     });
-
   });
 });
 
@@ -488,7 +643,7 @@ app.post('/get-todo-lists', async (req, res) =>{
 
     let progressIndex = 0;
     let completedIndex = 0;
-    // goes through results and seperates each to-do list into completed and in progress arrays
+    // goes through results and separates each to-do list into completed and in progress arrays
     results.forEach(row =>{
       // in progress list
       if(row.completed_at === null){
@@ -576,15 +731,15 @@ app.post('/get-todo-lists', async (req, res) =>{
   });
 });
 
-// update list and task infomation once its been edited
+// update list and task information once its been edited
 app.post('/update-todo', async(req, res) =>{
   // getting data from request
-  const {listDetails, userId} = req.body;
+  const {listDetails, userId, firstName, email, deadlineOffset, notificationEnabled} = req.body;
 
   // deconstructing list details
   const {list_id, list_name, created_at, completed_at, tasks} = listDetails;
 
-  // starting transaction so all queries fail or scucceed together
+  // starting transaction so all queries fail or succeed together
   db.beginTransaction((transErr) =>{
     if(transErr){
       return res.status(500).json({success: false, message: "This transaction could not be started, please try saving your list again."});
@@ -619,11 +774,29 @@ app.post('/update-todo', async(req, res) =>{
         // deletes tasks from the database
         const deleteTask = (taskId) => {
           return new Promise((resolve, reject) =>{
+            
             // query to delete task
             const deleteTaskQuery = "DELETE FROM tasks WHERE task_id = ?";
-            db.query(deleteTaskQuery, [taskId], (deleteTaskErr, results) =>{
+            db.query(deleteTaskQuery, [taskId], async (deleteTaskErr, results) =>{
               if(deleteTaskErr){
                 return reject(deleteTaskErr);
+              }
+
+              try{
+                const deleteEmail = await fetch("http://localhost:3002/delete-task-notification",{
+                  method: "POST",
+                  headers: {"Content-Type": "application/json"},
+                  body: JSON.stringify({ taskId })
+                });
+            
+                const result = await deleteEmail.json();
+                if(result.success){
+                  console.log(result.message);
+                }else{
+                  console.error(result.message);
+                }
+              }catch(err){
+                console.error(`Error deleting notification for task ${taskId}:` , err);
               }
               resolve();
             });
@@ -638,11 +811,37 @@ app.post('/update-todo', async(req, res) =>{
           return new Promise((resolve, reject) =>{
             //query to update task information
             const updateTaskQuery = "UPDATE tasks SET task_description = ?, deadline = ?, completed = ?, priority = ? WHERE task_id = ? AND list_id = ?";
-            db.query(updateTaskQuery, [task.task_description, task.deadline, task.completed, task.priority, task.task_id, list_id], (updateTaskErr, results) =>{
+            db.query(updateTaskQuery, [task.task_description, task.deadline, task.completed, task.priority, task.task_id, list_id], async (updateTaskErr, results) =>{
               if(updateTaskErr){
                 return reject(updateTaskErr);
               }
-              resolve();
+              if(notificationEnabled){
+                const deadline = task.deadline;
+                if(deadline && new Date(deadline).setHours(0, 0, 0, 0) >= new Date().setHours(0, 0, 0, 0)){
+                  try{
+                    const rescheduleEmail = await fetch ("http://localhost:3002/reschedule-email" ,{
+                      method: "POST",
+                      headers: {"Content-Type" : "application/json"},
+                      body: JSON.stringify({
+                        firstName,
+                        taskId: task.task_id,
+                        listName: list_name,
+                        email,
+                        taskDescription: task.task_description,
+                        deadline,
+                        offset: deadlineOffset
+                      }),
+                    });
+                    const emailResult = await rescheduleEmail.json();
+                    if(!emailResult.success){
+                      console.error(`Failed to reschedule email for task ${taskId}: ${emailResult.message}`);
+                    }
+                  }catch(emailErr){
+                    console.error(`Error rescheduling email for task ${taskId}:`, emailErr);
+                  }
+                }
+              }
+              resolve(results);
             });
           });
         };
@@ -652,11 +851,38 @@ app.post('/update-todo', async(req, res) =>{
           return new Promise((resolve, reject) =>{
             // query to add task to task table
             const addTaskQuery = "INSERT INTO tasks (list_id, task_description, deadline, completed, priority) VALUES(?, ?, ?, ?, ?)";
-            db.query(addTaskQuery, [list_id, task.task_description, task.deadline, task.completed, task.priority], (addTaskErr, results) =>{
+            db.query(addTaskQuery, [list_id, task.task_description, task.deadline, task.completed, task.priority], async (addTaskErr, results) =>{
               if(addTaskErr){
                 return reject(addTaskErr);
               }
-              resolve();
+              if(notificationEnabled){
+                const taskId = results.insertId;
+                const deadline = task.deadline;
+                if(deadline && new Date(deadline).setHours(0, 0, 0, 0) >= new Date().setHours(0, 0, 0, 0)){
+                  try{
+                    const scheduleEmail = await fetch ("http://localhost:3002/create-task" ,{
+                      method: "POST",
+                      headers: {"Content-Type" : "application/json"},
+                      body: JSON.stringify({
+                        firstName,
+                        taskId,
+                        listName: list_name,
+                        email,
+                        taskDescription: task.task_description,
+                        deadline,
+                        offset: deadlineOffset
+                      }),
+                    });
+                    const emailResult = await scheduleEmail.json();
+                    if(!emailResult.success){
+                      console.error(`Failed to schedule email for task ${taskId}: ${emailResult.message}`);
+                    }
+                  }catch(emailErr){
+                    console.error(`Error scheduling email for task ${taskId}:`, emailErr);
+                  }
+                }
+              }
+              resolve(results);
             });
           });
         };
@@ -671,7 +897,7 @@ app.post('/update-todo', async(req, res) =>{
           }
         });
 
-        // ensures all promises were fullfilled
+        // ensures all promises were fulfilled
         Promise.all([...deleteTaskPromises, ...taskPromises]).then(() => {
           db.commit((err) => {
             if(err){
@@ -679,7 +905,7 @@ app.post('/update-todo', async(req, res) =>{
                 return res.status(500).json({success: false, message: 'The To-Do List could not be updated at this time, please try again later.'});
               });
             }
-            res.status(200).json({success: true, message: "To-do list was updated sucessfully"});
+            res.status(200).json({success: true, message: "To-do list was updated successfully"});
           });
         }).catch((err) =>{
           db.rollback(() =>{
@@ -696,6 +922,23 @@ app.delete('/delete-todo-list', async(req, res) =>{
   // getting list info from request
   const {userId, list_id} = req.body;
 
+  const deadlinesQuery = 'SELECT task_id FROM todo_lists INNER JOIN tasks on todo_lists.list_id = tasks.list_id WHERE user_id = ? AND tasks.list_id = ? AND deadline IS NOT NULL AND deadline >= CURRENT_DATE AND completed = 0';
+  const [deadlines] = await db.promise().query(deadlinesQuery, [userId, list_id]);
+
+  for(const deadline of deadlines){
+    const deleteEmail = await fetch("http://localhost:3002/delete-task-notification",{
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({taskId: deadline.task_id})
+    });
+
+    const result = await deleteEmail.json();
+    if(result.success){
+      console.log(result.message);
+    }else{
+      console.error(result.message);
+    }
+  }
   // delete query
   const deleteListQuery = 'DELETE FROM todo_lists WHERE list_id = ? AND user_id = ?';
 
@@ -708,3 +951,40 @@ app.delete('/delete-todo-list', async(req, res) =>{
   });
 });
 
+// adding deadline email information to database
+
+app.post('/save-deadline-job', async(req, res) =>{
+  const {taskId, firstName, listName, email, taskDescription, deadline, offset} = req.body;
+
+  const query = "INSERT INTO deadline_emails (task_id, first_name, list_name, email, task_description, deadline, deadline_offset) VALUES (?, ?, ?, ?, ?, ?, ?)";
+  db.query(query, [taskId, firstName, listName, email, taskDescription, deadline, offset], (err) => {
+    if(err){
+      return res.status(500).json({success: false, message: `Failed to save job for task ${taskId} to the database: ${err}`});
+    }else{
+      return res.status(200).json({success: true, message: `The job for task ${taskId} has been saved to the database`});
+    }
+  });
+});
+// deleting deadline email information from database
+app.delete('/delete-deadline-job', async(req, res) =>{
+  const { taskId } = req.body;
+
+  const query = "DELETE FROM deadline_emails WHERE task_id = ?";
+  db.query(query, [taskId], (err) => {
+    if(err){
+      return res.status(500).json({success: false, message: `Failed to remove job for task ${taskId} from the database: ${err}`});
+    }else{
+      return res.status(200).json({success: true, message: `The job for task ${taskId} has been removed from the database`});
+    }
+  });
+});
+
+app.get('/get-scheduled-jobs', async(req, res) =>{
+  db.query("SELECT * FROM deadline_emails", (err, results) => {
+    if(err){
+      console.error("Failed to retrieve scheduled jobs from the database: ", err);
+      return res.status(500).json({success: false, message: "Failed to retrieve scheduled jobs from the database"});
+    }
+    return res.status(200).json({success: true, message: "scheduled jobs retrieved", data: results});
+  });
+})

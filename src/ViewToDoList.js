@@ -153,11 +153,16 @@ function ViewToDoList() {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user ? user.userId : null;
+      const firstName = user ? user.firstName : null;
+      const email = user ? user.email : null;
+      const deadlineOffset = user ? user.deadlineOffset : null;
+      const notificationEnabled = user ? user.notificationEnabled : null;
+
 
       const response = await fetch("http://localhost:3001/update-todo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({listDetails, userId }),
+        body: JSON.stringify({listDetails, userId, firstName, email, deadlineOffset, notificationEnabled}),
       });
 
       const result = await response.json();
