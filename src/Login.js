@@ -29,7 +29,7 @@ const handleSubmit = async (e) => {
             setErrorMessage('');
 
             // Store user data in localStorage
-            localStorage.setItem('user', JSON.stringify({ email: result.user.email }));
+            localStorage.setItem('user', JSON.stringify(result.user));
             console.log("User Data Stored:", localStorage.getItem('user')); // Verify stored value
 
             onLogin();  // Simulate successful login
