@@ -93,7 +93,8 @@ function UserAccount() {
                     method: 'DELETE',
                     headers: {'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        id: parseInt(id, 10)
+                        email,
+                        userId: parseInt(userId, 10)
                     })
                 });
 
