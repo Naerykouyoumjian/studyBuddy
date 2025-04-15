@@ -152,13 +152,17 @@ function ViewToDoList() {
     
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-      const userId = user ? user.id : null;
+      const userId = user ? user.userId : null;
+      const firstName = user ? user.firstName : null;
+      const email = user ? user.email : null;
+      const deadlineOffset = user ? user.deadlineOffset : null;
+      const notificationEnabled = user ? user.notificationEnabled : null;
 
       const backendURL = process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendURL}/update-todo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({listDetails, userId }),
+        body: JSON.stringify({listDetails, userId, firstName, email, deadlineOffset, notificationEnabled}),
       });
 
       const result = await response.json();
@@ -183,7 +187,7 @@ function ViewToDoList() {
 
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-      const userId = user ? user.id : null;
+      const userId = user ? user.userId : null;
 
       const backendURL = process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendURL}/delete-todo-list`, {
@@ -298,7 +302,7 @@ function ViewToDoList() {
                         >
                           {task.task_description}
                         </span>
-                        {/* printing deadine in red if applicable */}
+                        {/* printing deadline in red if applicable */}
                         {task.deadline && (
                           <span style = {{color: "red" }}>
                             deadline: {format(task.deadline, "M/d/yy")}
