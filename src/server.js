@@ -395,75 +395,21 @@ app.post('/save-new-password', (req, res) => {
   });
 });
 
-
-
-/*
-You should write this in the Mysql workbench to work
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    firstName VARCHAR(50) NOT NULL,
-    lasttName VARCHAR(50) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-*/
-
-/*
-add this create statement to database to create reset_tokens table:
-create table reset_tokens(
-	  id INT AUTO_INCREMENT PRIMARY KEY,
-	  email VARCHAR(100) NOT NULL UNIQUE,
-    token VARCHAR(50) NOT NULL UNIQUE,
-    expiration DATETIME NOT NULL,
-    FOREIGN KEY (email) REFERENCES users(email)
-);
-*/
 // Login route
-// app.post('/login', (req, res) => {
-//   const { email, password } = req.body;
-
-//   const query = 'SELECT * FROM users WHERE email = ?';
-//   db.query(query, [email], async (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Server error' });
-//     }
-
-//     if (results.length === 0) {
-//       return res.status(404).json({ success: false, message: 'Email not found' });
-//     }
-
-//     const user = results[0];
-//     const isMatch = await bcrypt.compare(password, user.password);
-    
-//     if (!isMatch) {
-//       return res.status(400).json({ success: false, message: 'Invalid password' });
-//     }
-
-//     return res.status(200).json({ success: true, message: 'Login successful' });
-//   });
-// });
-
-
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   console.log("Incoming Login Request:", email, password);
 
-  const query = 'SELECT * FROM users WHERE email = ?';
-  db.query(query, [email], async (err, results) => {
-    if (err) {
-      console.error("Database Error:", err);
-      return res.status(500).json({ success: false, message: 'Server error' });
-    }
+  try{
+    const query = 'SELECT * FROM users WHERE email = ?';
+    const [userResults] = await db.promise().query(query, [email]);
 
-    if (results.length === 0) {
-      console.log("Email not found:", email);
+    if (userResults.length === 0){
       return res.status(404).json({ success: false, message: 'Email not found' });
     }
 
-    const user = results[0];
-    console.log("User Found:", user);
+    const user = userResults[0];
     console.log("Password provided by user:", password);
     console.log("Hashed password from database:", user.password_hash);
 
@@ -473,79 +419,132 @@ app.post('/login', (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
-    console.log("Password Match:", isMatch);
     
     if (!isMatch) {
       return res.status(400).json({ success: false, message: 'Invalid password' });
     }
 
+    const notifQuery = "SELECT * FROM notification_preferences WHERE user_id = ?";
+    const [notifResults] = await db.promise().query(notifQuery, [user.id]);
+    const notifPreferences = notifResults.length > 0 ? notifResults[0] : {deadline_alert_timing: 'never', schedule_alert_timing: 'never'};
+
     // Send user information to the frontend
     return res.status(200).json({
       success: true,
       message: 'Login successful',
-        user: {
-            id: user.id,
+      user: {
+        userId: user.id,
         firstName: user.first_name,
         lastName: user.last_name,
         email: user.email,
+        notificationEnabled: user.notification_enabled,
+        deadlineOffset: notifPreferences.deadline_alert_timing,
+        scheduleOffset: notifPreferences.schedule_alert_timing
       }
     });
-  });
+  }catch(err){
+    console.error("Database Error:", err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Update user info route
-app.put('/update-user', (req, res) => {
-    const { id, email, firstName, lastName, currentPassword, newPassword } = req.body;
-    if (!id) {
-        return res.status(400).json({ sucess: false, message: "User ID is required." });
+app.put('/update-user', async (req, res) => {
+  const { userId, email, firstName, lastName, currentPassword, newPassword, notificationEnabled, deadlineOffset, scheduleOffset } = req.body;
+
+  try{
+    const query = 'SELECT * FROM users WHERE email = ?';
+    const [userResults] = await db.promise().query(query, [email]);
+    if(userResults.length === 0){
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    const user = userResults[0];
+    const passwordUpdated = currentPassword && newPassword;
+
+    // If password is to be changed, check current password
+    let hashedPassword;
+    if (passwordUpdated) {
+      const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!isMatch) {
+          return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+      }
+
+      // Hash the new password
+      const saltRounds = 10;
+      hashedPassword = await bcrypt.hash(newPassword, saltRounds);
     }
 
-  const query = 'SELECT * FROM users WHERE email = ?';
-  db.query(query, [email], async (err, results) => {
-      if (err) {
-          return res.status(500).json({ success: false, message: 'Server error' });
-      }
+    const firstNameUpdated = user.firstName === firstName ? false : true;
+    const lastNameUpdated = user.lastName === lastName ? false : true;
+    const notifsUpdated = user.notificationEnabled === notificationEnabled ? false : true;
 
-      if (results.length === 0) {
-          return res.status(404).json({ success: false, message: 'User not found' });
-      }
+    const deadlineOffsetQuery = 'SELECT deadline_alert_timing FROM notification_preferences WHERE user_id = ?';
+    const deadlineOffsetResults = await db.promise().query(deadlineOffsetQuery, [userId]);
+    const deadlineOffsetUpdated = deadlineOffsetResults[0].deadline_alert_timing === deadlineOffset ? false : true;
 
-      const user = results[0];
+    // parsing update query and parameters based on attributes that need to be updated
+    let updateQueryParams = [];
+    let updateParams = [];
 
-      // If password is to be changed, check current password
-      if (currentPassword && newPassword) {
-          const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
-          if (!isMatch) {
-              return res.status(400).json({ success: false, message: 'Current password is incorrect' });
-          }
+    if(firstNameUpdated){
+      updateQueryParams.push("first_name = ?");
+      updateParams.push(firstName);
+    }
 
-          // Hash the new password
-          const saltRounds = 10;
-          const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    if(lastNameUpdated){
+      updateQueryParams.push("last_name = ?");
+      updateParams.push(lastName);
+    }
 
-          // Update user with new password
-          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, password_hash = ? WHERE id = ?';
-          db.query(updateQuery, [firstName, lastName, hashedPassword, id], (updateErr) => {
-              if (updateErr) {
-                  return res.status(500).json({ success: false, message: 'Failed to update user' });
-              }
-              return res.status(200).json({ success: true, message: 'User updated successfully' });
-          });
-      } else {
-          // Update user without changing the password
-          if (!id) {
-              return res.status(400).json({ success: false, message: "User ID is required to update."})
-          }
+    if(passwordUpdated){
+      updateQueryParams.push("password_hash = ?");
+      updateParams.push(hashedPassword);
+    }
 
-          const updateQuery = 'UPDATE users SET first_name = ?, last_name = ? WHERE id = ?';
-          db.query(updateQuery, [firstName, lastName, id], (updateErr) => {
-              if (updateErr) {
-                  return res.status(500).json({ success: false, message: 'Failed to update user' });
-              }
-              return res.status(200).json({ success: true, message: 'User updated successfully' });
-          });
-      }
-  });
+    if(notifsUpdated){
+      updateQueryParams.push("notification_enabled = ?");
+      updateParams.push(notificationEnabled ? 1 : 0);
+    }
+    updateParams.push(email);
+
+    // updating user information
+    try{
+      const updateQuery = `UPDATE users SET ${updateQueryParams.join(", ")} WHERE email = ?`;
+      await db.promise().query(updateQuery, updateParams)
+    }catch(updateErr){
+      return res.status(500).json({ success: false, message: 'Failed to update user' });
+    }
+
+    // updating notification preferences
+    try{
+      const notifQuery = 'UPDATE notification_preferences SET deadline_alert_timing = ?, schedule_alert_timing = ? WHERE user_id = ?';
+      const notifParams = notificationEnabled ? [deadlineOffset, scheduleOffset, userId] : ['never', 'never', userId];
+      
+      await db.promise().query(notifQuery, notifParams);
+      const [updatedUserResults] = await db.promise().query(query, [email]);
+      const updatedUser = updatedUserResults[0];
+
+      return res.status(200).json({
+        success: true,
+        message: 'User updated successfully',
+        user: {
+          userId: updatedUser.id,
+          firstName: updatedUser.first_name,
+          lastName: updatedUser.last_name,
+          email: updatedUser.email,
+          notificationEnabled: updatedUser.notification_enabled,
+          deadlineOffset,
+          scheduleOffset
+        },
+      });
+    }catch(err){
+      return res.status(500).json({success: false, message: "Failed to update Notification Preferences"});
+    }
+
+  }catch(err){
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 //Delete study plan

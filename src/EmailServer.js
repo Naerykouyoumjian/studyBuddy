@@ -13,8 +13,6 @@ emailServer.use(cors());
 //allows for parsing of JSON request into javascript request
 emailServer.use(express.json());
 
-const fetch = require('node-fetch');
-
 //Nodemailer transporter allows for contact with our Gmail account 
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -46,8 +44,9 @@ emailServer.post("/reset-password-email", async (req, res) => {
     const userInfo = {email, token, formattedExp};
     try{
         //post request to save the created token to our reset_tokens table
-        //const backendURL = process.env.REACT_APP_BACKEND_URL;
-        const response = await fetch('http://3.15.237.83:3001/save-token',{
+        const backendURL = process.env.REACT_APP_BACKEND_URL;
+        console.log("Backend URL: ", backendURL);
+        const response = await fetch(`${backendURL}/save-token`,{
             method: "POST",
             headers: {"Content-Type" : "application/json"},
             body: JSON.stringify(userInfo)

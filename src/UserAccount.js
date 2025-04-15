@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 function UserAccount() {
     //Declare state variables
-    const [id, setId] = useState("");
+    const [userId, setUserId] = useState(0);
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -16,8 +16,9 @@ function UserAccount() {
     const navigate = useNavigate();
     const [isEditingFirstName, setIsEditingFirstName] = useState(false);
     const [isEditingLastName, setIsEditingLastName] = useState(false);
-
-
+     // Separate dropdowns for deadline / schedule
+     const [deadlineOffset, setDeadlineOffset]   = useState("never");
+     const [scheduleOffset, setScheduleOffset]   = useState("never");
 
     // Load user data from localStorage
     useEffect(() => {
@@ -25,10 +26,13 @@ function UserAccount() {
         if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
             try {
                 const userData = JSON.parse(storedUser);
-                setId(userData.id || "");
+                setUserId(userData.userId || 0);
                 setFirstName(userData.firstName || "");
                 setLastName(userData.lastName || "");
                 setEmail(userData.email || "");
+                setNotificationEnabled(userData.notificationEnabled  || false);
+                setDeadlineOffset(userData.deadlineOffset);
+                setScheduleOffset(userData.scheduleOffset);
             } catch (error) {
                 console.error("Error parsing user data from localStorage:", error);
             }
@@ -38,6 +42,11 @@ function UserAccount() {
     }, []);
 
     const handleSaveChanges = async () => {
+        if (newPassword && newPassword !== confirmPassword) {
+            alert("New password and confirm password do not match.");
+            return;
+        }
+
         try {
             const backendURL = process.env.REACT_APP_BACKEND_URL;
             console.log("Backend URL: ", backendURL);
@@ -45,12 +54,15 @@ function UserAccount() {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    id,
+                    userId,
                     email,
                     firstName,
                     lastName,
                     currentPassword,
-                    newPassword
+                    newPassword,
+                    notificationEnabled,
+                    deadlineOffset,
+                    scheduleOffset
                 })
             });
     
@@ -58,7 +70,7 @@ function UserAccount() {
             if (result.success) {
                 console.log('User updated successfully');
                 // Update localStorage with new user details
-                localStorage.setItem('user', JSON.stringify({ id, firstName, lastName, email }));
+                localStorage.setItem('user', JSON.stringify(result.user));
                 alert('User information updated successfully!');
                 setIsEditingFirstName(false);
                 setIsEditingLastName(false);
@@ -74,11 +86,6 @@ function UserAccount() {
 
     const handleDeleteUser = async () => {
         try{
-            if (!id || isNaN(id)) {
-                alert("Invalid user ID. Cannot delete account.");
-                return;
-            }
-
             if(window.confirm("Press Ok if you are sure you want to delete your profile.\nThis action is permanent and cannot be reversed.")){
                 const backendURL = process.env.REACT_APP_BACKEND_URL;
                 console.log("Backend URL: ", backendURL);
@@ -123,32 +130,32 @@ function UserAccount() {
                     <label>First Name: </label>
                     <div className='editable-field'>
                     <input
-                                        type="text"
-                                        value={firstName}
-                                        onChange={(e) => setFirstName(e.target.value)}
-                                        readOnly={!isEditingFirstName}
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        readOnly={!isEditingFirstName}
                     />
-                                    <span
-                                        className='edit-icon'
-                                        onClick={() => setIsEditingFirstName(true)}
-                                    >&#9998;
-                                    </span> {/*Edit icon*/}
+                    <span
+                        className='edit-icon'
+                        onClick={() => setIsEditingFirstName(true)}
+                    >&#9998;
+                    </span> {/*Edit icon*/}
                     </div>
                 </div>
                 <div className='form-group'>
                     <label>Last Name: </label>
                     <div className='editable-field'>
                     <input
-                                        type="text"
-                                        value={lastName}
-                                        onChange={(e) => setLastName(e.target.value)}
-                                        readOnly={!isEditingLastName}
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        readOnly={!isEditingLastName}
                     />
-                                    <span className='edit-icon'
-                                        onClick={() => setIsEditingLastName(true)}
-                                            >
-                                            &#9998;
-                                    </span> {/*Edit icon*/}
+                    <span className='edit-icon'
+                        onClick={() => setIsEditingLastName(true)}
+                            >
+                            &#9998;
+                    </span> {/*Edit icon*/}
 
                 </div>
                 </div>
@@ -192,15 +199,56 @@ function UserAccount() {
                 </div>
                 </div>
 
+                {/* Notification Settings */}
                 <h2 className= 'section-title'> Notification Settings</h2>
-                    <div className='notification-section'>
+                <div className='notification-section'>
                     <label>ON/OFF:</label>
                     <input
                     type='checkbox'
                     checked={notificationEnabled}
                     onChange={() => setNotificationEnabled(!notificationEnabled)}
                     />
-                    </div>
+                </div>
+                {/* If ON, show two dropdowns for deadline + schedule */}
+                {notificationEnabled && (
+                        <div className='notification-dropdowns'>
+                            <div className='notification-dropdown'>
+                                <label className='notif-label'>Deadline Notification:</label>
+                                <select
+                                    value={deadlineOffset}
+                                    onChange={(e) => {
+                                        setDeadlineOffset(e.target.value);
+                                        console.log(`Deadline offset: ${e.target.value}`);
+                                    }}
+                                >
+                                    <option value="never">Never</option>
+                                    <option value="1day">1 day before</option>
+                                    <option value="2day">2 days before</option>
+                                    <option value="5day">5 days before</option>
+                                    <option value="1week">1 week before</option>
+                                </select>
+                            </div>
+
+                            <div className='notification-dropdown'>
+                                <label className='notif-label'>Schedule Notification:</label>
+                                <select
+                                    value={scheduleOffset}
+                                    onChange={(e) => { 
+                                        setScheduleOffset(e.target.value);
+                                        console.log(`Schedule offset: ${e.target.value}`);
+                                    }}
+                                >
+                                    <option value="never">Never</option>
+                                    <option value="1hour">1 hour before</option>
+                                    <option value="3hour">3 hours before</option>
+                                    <option value="12hour">12 hours before</option>
+                                    <option value="1day">1 day before</option>
+                                    <option value="3day">3 days before</option>
+                                    <option value="1week">1 week before</option>
+                                </select>
+                            </div>
+                        </div>
+                    )}
 
                     {/*button style*/}
                     <div className='buttons-container'>
