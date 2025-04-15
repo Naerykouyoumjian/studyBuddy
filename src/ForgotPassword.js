@@ -55,7 +55,7 @@ function ForgotPassword(){
         } catch(error){
             //In case an error occurs while trying to send the E-mail -> most likely cause is forgetting to start the E-mail server
             console.error("handle email error: ", error);
-            alert("Error occured while sending E-mail, please try again");
+            alert("Error occurred while sending E-mail, please try again");
         }
         
     };
@@ -72,7 +72,7 @@ function ForgotPassword(){
                     className = "e-mail" 
                     type = "email" 
                     value = {email} 
-                    /*handeling email input from users */
+                    /*handling email input from users */
                     onChange = {(e) => setEmail(e.target.value)} 
                     required 
                     placeholder = "Enter your Email"    

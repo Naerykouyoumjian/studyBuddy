@@ -123,14 +123,19 @@ function CreateToDoList() {
     try{
       // gets user info from local storage
       const user = JSON.parse(localStorage.getItem('user'));
-      // gets user id from user info
-      const userId = user ? user.id : null;
+      // gets user information
+      const userId = user ? user.userId : null;
+      const firstName = user ? user.firstName : null;
+      const email = user ? user.email : null;
+      const deadlineOffset = user ? user.deadlineOffset : null;
+      const notificationEnabled = user ? user.notificationEnabled : null;
+
       const backendURL = process.env.REACT_APP_BACKEND_URL;
       // post request to save the todo list
       const response = await fetch(`${backendURL}/save-todo`, {
         method: "POST",
         headers: {"Content-Type" : "application/json"},
-        body: JSON.stringify({listName, tasks, taskDates, userId})
+       body: JSON.stringify({ firstName, email, listName, tasks, taskDates, userId, deadlineOffset, notificationEnabled})
       });
 
       // getting results from test
@@ -150,7 +155,7 @@ function CreateToDoList() {
       alert(result.message);
       
     }catch(error){
-      //an error connecting to the server occured and the user is notified
+      //an error connecting to the server occurred and the user is notified
       alert("Error connecting to the server");
     }
 

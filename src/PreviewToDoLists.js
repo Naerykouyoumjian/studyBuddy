@@ -6,7 +6,7 @@ import "./PreviewToDoList.css";
 function PreviewToDoList(){
     // gets user info from local storage
     const user = JSON.parse(localStorage.getItem('user'));
-    const user_id = user.id;
+    const user_id = user.userId;
     const [selectedOption, setSelectedOption] = useState("progress");
     const [inProgressLists, setProgressLists] = useState([]);
     const [completedLists, setCompletedLists] = useState([]);
