@@ -986,8 +986,11 @@ app.post('/update-todo', async(req, res) =>{
               if(updateTaskErr){
                 return reject(updateTaskErr);
               }
-              if(notificationEnabled){
-                const deadline = task.deadline;
+
+              const deadline = task.deadline;
+              const taskCompleted = task.completed;
+              // scheduling notification if task hasn't been completed
+              if(notificationEnabled && !taskCompleted){
                 if(deadline && new Date(deadline).setHours(0, 0, 0, 0) >= new Date().setHours(0, 0, 0, 0)){
                   try{
                     const rescheduleEmail = await fetch (`${emailServerURL}/reschedule-email` ,{
@@ -1011,6 +1014,25 @@ app.post('/update-todo', async(req, res) =>{
                     console.error(`Error rescheduling email for task ${taskId}:`, emailErr);
                   }
                 }
+              // removing scheduled notification if task has been completed
+              }else if(notificationEnabled && deadline && taskCompleted){
+                try{
+                  taskId = task.task_id;
+                  const deleteEmail = await fetch(`${emailServerURL}/delete-task-notification`,{
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ taskId })
+                  });
+              
+                  const result = await deleteEmail.json();
+                  if(result.success){
+                    console.log(result.message);
+                  }else{
+                    console.error(result.message);
+                  }
+                }catch(err){
+                  console.error(`Error deleting notification for task ${taskId}:` , err);
+                }
               }
               resolve(results);
             });
@@ -1026,7 +1048,8 @@ app.post('/update-todo', async(req, res) =>{
               if(addTaskErr){
                 return reject(addTaskErr);
               }
-              if(notificationEnabled){
+              const taskCompleted = task.completed;
+              if(notificationEnabled && !taskCompleted){
                 const taskId = results.insertId;
                 const deadline = task.deadline;
                 if(deadline && new Date(deadline).setHours(0, 0, 0, 0) >= new Date().setHours(0, 0, 0, 0)){
