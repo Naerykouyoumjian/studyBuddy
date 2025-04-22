@@ -1428,7 +1428,7 @@ app.delete('/delete-study-jobs', async(req, res) =>{
     }
   });
 });
-app.get("get-scheduled-session-jobs", async (req, res) =>{
+app.get("/get-scheduled-session-jobs", async (req, res) =>{
   db.query("SELECT * FROM schedule_emails", (err, results) => {
     if(err){
       console.error("Failed to retrieve scheduled jobs for study sessions from the database: ", err);
