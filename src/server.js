@@ -515,7 +515,10 @@ app.put('/update-user', async (req, res) => {
 
     const scheduleOffsetQuery =  'SELECT schedule_alert_timing FROM notification_preferences WHERE user_id = ?';
     const scheduleOffsetResults = await db.promise().query(scheduleOffsetQuery, [userId]);
+    console.log(`schedule Offset: ${scheduleOffset}`);
+    console.log(`schedule alert timing: ${scheduleOffsetResults[0].schedule_alert_timing}`);
     const scheduleOffsetUpdated = scheduleOffsetResults[0].schedule_alert_timing === scheduleOffset ? false : true;
+    console.log(`schedule Offset Updated: ${scheduleOffsetUpdated}`);
 
     // parsing update query and parameters based on attributes that need to be updated
     let updateQueryParams = [];
