@@ -120,6 +120,9 @@ const StudySchedule = () => {
         // Fetch user email from local storage
         const user = JSON.parse(localStorage.getItem("user"));
         const userEmail = user?.email; // Extract email
+        const firstName = user?.firstName;
+        const notificationEnabled = user?.notificationEnabled;
+        const scheduleOffset = user?.scheduleOffset;
 
         if (!userEmail) {
             console.error("No user email found. User might not be logged in.");
@@ -137,8 +140,11 @@ const StudySchedule = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
+                    firstName,
                     userEmail,  // Send dynamic email
                     studyPlan,
+                    notificationEnabled,
+                    scheduleOffset                    
                 }),
             });
 
