@@ -1404,7 +1404,7 @@ app.post('/save-study-job', async (req, res) =>{
   const {scheduleId, firstName, email, subject, day, date, startTime, endTime, offset} = req.body;
   const query = "INSERT INTO schedule_emails (schedule_id, first_name, email, subject, day, date, start_time, end_time, notification_offset) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-  db.query(query, [scheduleId, firstName, email, subject, day, date, startTime, endTime, offset], (err) =>{
+  db.query(query, [scheduleId, firstName, email, subject, day, date, startTime, endTime, offset], (err, result) =>{
     if(err){
       return res.status(500).json({success: false, message: `Failed to save job for a study session to the database: ${err}`});
     }else{
