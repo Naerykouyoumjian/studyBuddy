@@ -149,11 +149,11 @@ app.post('/save-study-plan', async (req, res) => {
               body: JSON.stringify(sessionEmailInfo)
             });
 
-            const result = await scheduleEmail.json();
-            if(result.success){
-                console.log(result.message);
+            const emailResult = await scheduleEmail.json();
+            if(emailResult.success){
+                console.log(emailResult.message);
             }else{
-                console.error(result.message);
+                console.error(emailResult.message);
             }
           }
         }
