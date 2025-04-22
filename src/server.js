@@ -564,8 +564,104 @@ app.put('/update-user', async (req, res) => {
       const scheduleQuery = 'SELECT id, plan_text FROM studyPlans WHERE user_email = ?';
       const [schedules] = await db.promise().query(scheduleQuery, [email]);
 
+      // user did not update notifications settings but updated deadline notification preferences
+      console.log(`notifsUpdated: ${notifsUpdated}`);
+      console.log(`deadlineOffsetUpdated: ${deadlineOffsetUpdated}`);
+      if(!notifsUpdated && deadlineOffsetUpdated){
+        for(const deadline of deadlines){
+          deadlineEmailInfo = {
+            firstName, 
+            taskId: deadline.task_id, 
+            listName: deadline.list_name,
+            email, 
+            taskDescription: deadline.task_description, 
+            deadline: deadline.deadline, 
+            offset: deadlineOffset
+          };
+
+          // rescheduling deadline emails with updated notification preferences
+          console.log(`task id: ${deadlineEmailInfo.taskId}`);
+          const rescheduleEmail = await fetch(`${emailServerURL}/reschedule-email`,{
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(deadlineEmailInfo)
+          });
+
+          const result = await rescheduleEmail.json();
+          if(result.success){
+            console.log(result.message);
+          }else{
+            console.error(result.message);
+          }
+        }
+
+      }
+
+      // user did not update notifications settings but updated schedule notification preferences
+      console.log(`notifsUpdated: ${notifsUpdated}`);
+      console.log(`scheduleOffsetUpdated: ${scheduleOffsetUpdated}`);
+      if(!notifsUpdated && scheduleOffsetUpdated){
+        for(const schedule of schedules){
+          const scheduleId = schedule.id;
+          const studyPlan = JSON.parse(schedule.plan_text);
+
+          // retrieving job ids for all sessions associated with the schedule
+          const jobsQuery = "SELECT job_id FROM schedule_emails WHERE schedule_id = ?";
+          const [jobIds] = await db.promise().query(jobsQuery, [scheduleId]);
+          const jobIdsArray = jobIds.map(job => job.job_id);
+          
+          // deleting all scheduled jobs for sessions associated with the schedule
+          const cancelEmails = await fetch(`${emailServerURL}/delete-schedule-notifications`, {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({
+                jobIds: jobIdsArray,
+                scheduleId
+              })
+          });
+
+          const result = await cancelEmails.json();
+          if(result.success){
+            console.log(result.message);
+          }else{
+            console.error(result.message);
+          }
+          
+          // rescheduling with new offset for each individual session job associated with the schedule 
+          for(const session of studyPlan){
+            sessionEmailInfo = {
+              firstName,
+              scheduleId: scheduleId,
+              email,
+              subject: session.subject,
+              day: session.day,
+              date: session.date,
+              startTime: session.startTime,
+              endTime: session.endTime,
+              offset: scheduleOffset
+            };
+
+            // reschedule session email with updated notification preferences
+            const rescheduleEmail = await fetch(`${emailServerURL}/add-session`, {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify(sessionEmailInfo)
+            });
+
+            const result = await rescheduleEmail.json();
+            if(result.success){
+              console.log(result.message);
+            }else{
+              console.error(result.message);
+            }
+          }
+        }
+        
+      }
+
       // Updating scheduled notifications based on user account settings
       // User has updated their notification settings
+      console.log(`notifsUpdated: ${notifsUpdated}`);
       if(notifsUpdated){
         // scheduling or un-scheduling deadlines based on notification setting
         for(const deadline of deadlines){
@@ -667,96 +763,6 @@ app.put('/update-user', async (req, res) => {
             }
           }
         }        
-      }
-
-      // user did not update notifications settings but updated deadline notification preferences
-      if(!notifsUpdated && deadlineOffsetUpdated){
-        for(const deadline of deadlines){
-          deadlineEmailInfo = {
-            firstName, 
-            taskId: deadline.task_id, 
-            listName: deadline.list_name,
-            email, 
-            taskDescription: deadline.task_description, 
-            deadline: deadline.deadline, 
-            offset: deadlineOffset
-          };
-
-          // rescheduling deadline emails with updated notification preferences
-          console.log(`task id: ${deadlineEmailInfo.taskId}`);
-          const rescheduleEmail = await fetch(`${emailServerURL}/reschedule-email`,{
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(deadlineEmailInfo)
-          });
-
-          const result = await rescheduleEmail.json();
-          if(result.success){
-            console.log(result.message);
-          }else{
-            console.error(result.message);
-          }
-        }
-
-      }
-      // user did not update notifications settings but updated schedule notification preferences
-      if(!notifsUpdated && scheduleOffsetUpdated){
-        for(const schedule of schedules){
-          const scheduleId = schedule.id;
-          const studyPlan = JSON.parse(schedule.plan_text);
-
-          // retrieving job ids for all sessions associated with the schedule
-          const jobsQuery = "SELECT job_id FROM schedule_emails WHERE schedule_id = ?";
-          const [jobIds] = await db.promise().query(jobsQuery, [scheduleId]);
-          const jobIdsArray = jobIds.map(job => job.job_id);
-          
-          // deleting all scheduled jobs for sessions associated with the schedule
-          const cancelEmails = await fetch(`${emailServerURL}/delete-schedule-notifications`, {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({
-                jobIds: jobIdsArray,
-                scheduleId
-              })
-          });
-
-          const result = await cancelEmails.json();
-          if(result.success){
-            console.log(result.message);
-          }else{
-            console.error(result.message);
-          }
-          
-          // rescheduling with new offset for each individual session job associated with the schedule 
-          for(const session of studyPlan){
-            sessionEmailInfo = {
-              firstName,
-              scheduleId: scheduleId,
-              email,
-              subject: session.subject,
-              day: session.day,
-              date: session.date,
-              startTime: session.startTime,
-              endTime: session.endTime,
-              offset: scheduleOffset
-            };
-
-            // reschedule session email with updated notification preferences
-            const rescheduleEmail = await fetch(`${emailServerURL}/add-session`, {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify(sessionEmailInfo)
-            });
-
-            const result = await rescheduleEmail.json();
-            if(result.success){
-              console.log(result.message);
-            }else{
-              console.error(result.message);
-            }
-          }
-        }
-        
       }
     }catch(notifErr){
       return res.status(500).json({success: false, message: "Failed to update Notification Preferences"});
