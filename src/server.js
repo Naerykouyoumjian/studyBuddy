@@ -507,6 +507,8 @@ app.put('/update-user', async (req, res) => {
 
     const firstNameUpdated = user.firstName === firstName ? false : true;
     const lastNameUpdated = user.lastName === lastName ? false : true;
+    console.log("user.notification Enabled: ", user.notificationEnabled);
+    console.log("notification Enabled: ", notificationEnabled);
     const notifsUpdated = user.notificationEnabled === notificationEnabled ? false : true;
 
     const deadlineOffsetQuery = 'SELECT deadline_alert_timing FROM notification_preferences WHERE user_id = ?';
