@@ -510,17 +510,17 @@ app.put('/update-user', async (req, res) => {
     const notifsUpdated = user.notification_enabled === notificationEnabled ? false : true;
 
     const deadlineOffsetQuery = 'SELECT deadline_alert_timing FROM notification_preferences WHERE user_id = ?';
-    const deadlineOffsetResults = await db.promise().query(deadlineOffsetQuery, [userId]);
+    const [deadlineOffsetResults] = await db.promise().query(deadlineOffsetQuery, [userId]);
     console.log(`Deadline Offset: ${deadlineOffset}`);
-    console.log(`deadline alert timing: ${deadlineOffsetResults[0]}`);
-    const deadlineOffsetUpdated = deadlineOffsetResults[0] === deadlineOffset ? false : true;
+    console.log(`deadline alert timing: ${deadlineOffsetResults[0].deadline_alert_timing}`);
+    const deadlineOffsetUpdated = deadlineOffsetResults[0].deadline_alert_timing === deadlineOffset ? false : true;
     console.log(`deadline Offset Updated: ${deadlineOffsetUpdated}`);
 
     const scheduleOffsetQuery =  'SELECT schedule_alert_timing FROM notification_preferences WHERE user_id = ?';
-    const scheduleOffsetResults = await db.promise().query(scheduleOffsetQuery, [userId]);
+    const [scheduleOffsetResults] = await db.promise().query(scheduleOffsetQuery, [userId]);
     console.log(`schedule Offset: ${scheduleOffset}`);
-    console.log(`schedule alert timing: ${scheduleOffsetResults[0]}`);
-    const scheduleOffsetUpdated = scheduleOffsetResults[0] === scheduleOffset ? false : true;
+    console.log(`schedule alert timing: ${scheduleOffsetResults[0].schedule_alert_timing}`);
+    const scheduleOffsetUpdated = scheduleOffsetResults[0].schedule_alert_timing === scheduleOffset ? false : true;
     console.log(`schedule Offset Updated: ${scheduleOffsetUpdated}`);
 
     // parsing update query and parameters based on attributes that need to be updated
