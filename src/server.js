@@ -511,17 +511,11 @@ app.put('/update-user', async (req, res) => {
 
     const deadlineOffsetQuery = 'SELECT deadline_alert_timing FROM notification_preferences WHERE user_id = ?';
     const [deadlineOffsetResults] = await db.promise().query(deadlineOffsetQuery, [userId]);
-    console.log(`Deadline Offset: ${deadlineOffset}`);
-    console.log(`deadline alert timing: ${deadlineOffsetResults[0].deadline_alert_timing}`);
     const deadlineOffsetUpdated = deadlineOffsetResults[0].deadline_alert_timing === deadlineOffset ? false : true;
-    console.log(`deadline Offset Updated: ${deadlineOffsetUpdated}`);
 
     const scheduleOffsetQuery =  'SELECT schedule_alert_timing FROM notification_preferences WHERE user_id = ?';
     const [scheduleOffsetResults] = await db.promise().query(scheduleOffsetQuery, [userId]);
-    console.log(`schedule Offset: ${scheduleOffset}`);
-    console.log(`schedule alert timing: ${scheduleOffsetResults[0].schedule_alert_timing}`);
     const scheduleOffsetUpdated = scheduleOffsetResults[0].schedule_alert_timing === scheduleOffset ? false : true;
-    console.log(`schedule Offset Updated: ${scheduleOffsetUpdated}`);
 
     // parsing update query and parameters based on attributes that need to be updated
     let updateQueryParams = [];
@@ -575,8 +569,6 @@ app.put('/update-user', async (req, res) => {
         const [schedules] = await db.promise().query(scheduleQuery, [email]);
 
         // user did not update notifications settings but updated deadline notification preferences
-        console.log(`notifsUpdated: ${notifsUpdated}`);
-        console.log(`deadlineOffsetUpdated: ${deadlineOffsetUpdated}`);
         if(!notifsUpdated && deadlineOffsetUpdated){
           for(const deadline of deadlines){
             deadlineEmailInfo = {
@@ -608,8 +600,6 @@ app.put('/update-user', async (req, res) => {
         }
 
         // user did not update notifications settings but updated schedule notification preferences
-        console.log(`notifsUpdated: ${notifsUpdated}`);
-        console.log(`scheduleOffsetUpdated: ${scheduleOffsetUpdated}`);
         if(!notifsUpdated && scheduleOffsetUpdated){
           for(const schedule of schedules){
             const scheduleId = schedule.id;
@@ -671,7 +661,6 @@ app.put('/update-user', async (req, res) => {
 
         // Updating scheduled notifications based on user account settings
         // User has updated their notification settings
-        console.log(`notifsUpdated: ${notifsUpdated}`);
         if(notifsUpdated){
           // scheduling or un-scheduling deadlines based on notification setting
           for(const deadline of deadlines){
