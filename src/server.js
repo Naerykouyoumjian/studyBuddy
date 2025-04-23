@@ -1438,23 +1438,39 @@ app.post('/save-study-job', async (req, res) =>{
 app.delete('/delete-study-jobs', async(req, res) =>{
   const { jobIds } = req.body;
 
-  const connection = await db.promise().getConnection();
-  try{
-    await connection.beginTransaction();
-    for(const id of jobIds){
-      const query = "DELETE FROM schedule_emails WHERE job_id = ?";
-      await connection.query(query, [id]);
+  db.beginTransaction((transErr) =>{
+    if(transErr){
+      return res.status(500).json({success: false, message: "This transaction could not be started, the session jobs were not deleted from the database."});
     }
-    
-    await connection.commit();
-    return res.status(200).json({success: true, message: "All jobs have been successfully deleted"});
 
-  }catch(error){
-    await connection.rollback();
-    return res.status(500).json({success: false, message: `Failed to remove job for schedule notifications from the database: ${err}`});
-  }finally{
-    connection.release();
-  } 
+    const deletePromises = jobIds.map((id) => {
+      const query = "DELETE FROM schedule_emails WHERE job_id = ?";
+      return new Promise((resolve, reject) =>{
+        db.query(query, [id], (err) =>{
+          if(err){
+            return reject(err);
+          }
+          resolve();
+        });
+      });
+    });
+
+    Promise.all(deletePromises).then(() =>{
+      db.commit((commitErr) => {
+        if(commitErr){
+          return db.rollback(() => {
+            res.status(500).json({success: false, message: `Failed to remove job for schedule notifications from the database: ${err}`});
+          });
+        }
+        res.status(200).json({success: true, message: "All jobs have been successfully deleted"});
+      });
+    }).catch((deleteErr) =>{
+      db.rollback(() =>{
+        res.status(500).json({success: false, message: `Failed to remove job for schedule notifications from the database: ${err}`});
+      });
+    });
+    
+  });
 });
 
 app.get("/get-scheduled-session-jobs", async (req, res) =>{
