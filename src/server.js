@@ -1434,17 +1434,29 @@ app.post('/save-study-job', async (req, res) =>{
   });
 });
 
+// deleting a list of sessions emails that have already been scheduled
 app.delete('/delete-study-jobs', async(req, res) =>{
   const { jobIds } = req.body;
-  const query = "DELETE FROM schedule_emails WHERE job_id IN (?)";
-  db.query(query, [jobIds], (err) => {
-    if(err){
-      return res.status(500).json({success: false, message: `Failed to remove job for schedule notifications from the database: ${err}`});
-    }else{
-      return res.status(200).json({success: true, message: `The job has been removed from the database`});
+
+  const connection = await db.promise().getConnection();
+  try{
+    await connection.beginTransaction();
+    for(const id of jobIds){
+      const query = "DELETE FROM schedule_emails WHERE job_id = ?";
+      await connection.query(query, [id]);
     }
-  });
+    
+    await connection.commit();
+    return res.status(200).json({success: true, message: "All jobs have been successfully deleted"});
+
+  }catch(error){
+    await connection.rollback();
+    return res.status(500).json({success: false, message: `Failed to remove job for schedule notifications from the database: ${err}`});
+  }finally{
+    connection.release();
+  } 
 });
+
 app.get("/get-scheduled-session-jobs", async (req, res) =>{
   db.query("SELECT * FROM schedule_emails", (err, results) => {
     if(err){
