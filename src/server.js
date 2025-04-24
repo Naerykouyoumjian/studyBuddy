@@ -116,7 +116,7 @@ You are a study plan assistant. Generate a study schedule in **valid JSON format
 
 //Route to save the study plan to database (ONLY when the user clicks "Save Plan")
 app.post('/save-study-plan', async (req, res) => {
-    const { firstName, userEmail, studyPlan, notificationEnabled, scheduleOffset} = req.body;
+    const { userEmail, studyPlan } = req.body;
 
     if (!userEmail || !studyPlan) {
         return res.status(400).json({
@@ -128,35 +128,6 @@ app.post('/save-study-plan', async (req, res) => {
     try {
         const query = 'INSERT INTO studyPlans (user_email, plan_text) VALUES (?, ?)';
         const [result] = await db.promise().query(query, [userEmail, JSON.stringify(studyPlan)]);
-
-        if(notificationEnabled && studyPlan.length > 0){
-          for(const session of studyPlan){
-            sessionEmailInfo = {
-              firstName,
-              scheduleId: result.insertId,
-              email: userEmail,
-              subject: session.subject,
-              day: session.day,
-              date: session.date,
-              startTime: session.startTime,
-              endTime: session.endTime,
-              offset: scheduleOffset
-            };
-            // schedule session email
-            const scheduleEmail = await fetch(`${emailServerURL}/add-session`, {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify(sessionEmailInfo)
-            });
-
-            const emailResult = await scheduleEmail.json();
-            if(emailResult.success){
-                console.log(emailResult.message);
-            }else{
-                console.error(emailResult.message);
-            }
-          }
-        }
 
         return res.status(200).json({
             success: true,
@@ -505,17 +476,13 @@ app.put('/update-user', async (req, res) => {
       hashedPassword = await bcrypt.hash(newPassword, saltRounds);
     }
 
-    const firstNameUpdated = user.first_name === firstName ? false : true;
-    const lastNameUpdated = user.last_name === lastName ? false : true;
-    const notifsUpdated = user.notification_enabled === notificationEnabled ? false : true;
+    const firstNameUpdated = user.firstName === firstName ? false : true;
+    const lastNameUpdated = user.lastName === lastName ? false : true;
+    const notifsUpdated = user.notificationEnabled === notificationEnabled ? false : true;
 
     const deadlineOffsetQuery = 'SELECT deadline_alert_timing FROM notification_preferences WHERE user_id = ?';
-    const [deadlineOffsetResults] = await db.promise().query(deadlineOffsetQuery, [userId]);
+    const deadlineOffsetResults = await db.promise().query(deadlineOffsetQuery, [userId]);
     const deadlineOffsetUpdated = deadlineOffsetResults[0].deadline_alert_timing === deadlineOffset ? false : true;
-
-    const scheduleOffsetQuery =  'SELECT schedule_alert_timing FROM notification_preferences WHERE user_id = ?';
-    const [scheduleOffsetResults] = await db.promise().query(scheduleOffsetQuery, [userId]);
-    const scheduleOffsetUpdated = scheduleOffsetResults[0].schedule_alert_timing === scheduleOffset ? false : true;
 
     // parsing update query and parameters based on attributes that need to be updated
     let updateQueryParams = [];
@@ -542,246 +509,102 @@ app.put('/update-user', async (req, res) => {
     }
     updateParams.push(email);
 
-    if(firstNameUpdated || lastNameUpdated || passwordUpdated || notifsUpdated)
-    {
-      // updating user information
-      try{
-        const updateQuery = `UPDATE users SET ${updateQueryParams.join(", ")} WHERE email = ?`;
-        await db.promise().query(updateQuery, updateParams)
-      }catch(updateErr){
-        return res.status(500).json({ success: false, message: 'Failed to update user' });
-      }
+    // updating user information
+    try{
+      const updateQuery = `UPDATE users SET ${updateQueryParams.join(", ")} WHERE email = ?`;
+      await db.promise().query(updateQuery, updateParams)
+    }catch(updateErr){
+      return res.status(500).json({ success: false, message: 'Failed to update user' });
     }
 
     // updating notification preferences
-    if(notifsUpdated || deadlineOffsetUpdated || scheduleOffsetUpdated){
-      // get data for deadlines that need to be scheduled
+    try{
+      const notifQuery = 'UPDATE notification_preferences SET deadline_alert_timing = ?, schedule_alert_timing = ? WHERE user_id = ?';
+      const notifParams = notificationEnabled ? [deadlineOffset, scheduleOffset, userId] : ['never', 'never', userId];
+      
+      await db.promise().query(notifQuery, notifParams);
+      
+      // get data for notifications that need to be scheduled
       const deadlinesQuery = 'SELECT task_id, list_name, task_description, deadline FROM todo_lists INNER JOIN tasks on todo_lists.list_id = tasks.list_id WHERE user_id = ? AND deadline IS NOT NULL AND deadline >= CURRENT_DATE AND completed = 0';
       const [deadlines] = await db.promise().query(deadlinesQuery, [userId]);
+      if(deadlines.length === 0){
+        return res.status(404).json({ success: false, message: 'Notification details could not be obtained' });
+      }
 
-      // get data for study schedules
-      const scheduleQuery = 'SELECT id, plan_text FROM studyPlans WHERE user_email = ?';
-      const [schedules] = await db.promise().query(scheduleQuery, [email]);
-      
-      try{
-        // user did not update notifications settings but updated deadline notification preferences
-        if(!notifsUpdated && deadlineOffsetUpdated){
-          // Loop through deadlines
-          for(const deadline of deadlines){
-            deadlineEmailInfo = {
-              firstName, 
-              taskId: deadline.task_id, 
-              listName: deadline.list_name,
-              email, 
-              taskDescription: deadline.task_description, 
-              deadline: deadline.deadline, 
-              offset: deadlineOffset
-            };
+      // Updating scheduled deadline notifications based on user account settings
+      // User has updated their notification settings
+      if(notifsUpdated){
+        for(const deadline of deadlines){
+          deadlineEmailInfo = {
+            firstName, 
+            taskId: deadline.task_id, 
+            listName: deadline.list_name,
+            email, 
+            taskDescription: deadline.task_description, 
+            deadline: deadline.deadline, 
+            offset: deadlineOffset
+          }
 
-            // rescheduling deadline emails with updated notification preferences
-            console.log(`task id: ${deadlineEmailInfo.taskId}`);
-            const rescheduleEmail = await fetch(`${emailServerURL}/reschedule-email`,{
+          // schedule all deadline emails
+          if(notificationEnabled){
+            const scheduleEmail = await fetch(`${emailServerURL}/create-task`, {
               method: "POST",
               headers: {"Content-Type": "application/json"},
               body: JSON.stringify(deadlineEmailInfo)
             });
-
-            const result = await rescheduleEmail.json();
-            if(result.success){
-              console.log(result.message);
-            }else{
-              console.error(result.message);
+            const result = await scheduleEmail.json();
+              if(result.success){
+                  console.log(result.message);
+              }else{
+                  console.error(result.message);
             }
-          }
-
-        }
-
-        // user did not update notifications settings but updated schedule notification preferences
-        if(!notifsUpdated && scheduleOffsetUpdated){
-          // loop through schedules
-          for(const schedule of schedules){
-            const scheduleId = schedule.id;
-            const studyPlan = JSON.parse(schedule.plan_text);
-
-            // retrieving job ids for all sessions associated with the schedule
-            const jobsQuery = "SELECT job_id FROM schedule_emails WHERE schedule_id = ?";
-            const [jobIds] = await db.promise().query(jobsQuery, [scheduleId]);
-            const jobIdsArray = jobIds.map(job => job.job_id);
-            
-            // deleting all scheduled jobs for sessions associated with the schedule
-            const cancelEmails = await fetch(`${emailServerURL}/delete-schedule-notifications`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                  jobIds: jobIdsArray,
-                  scheduleId
-                })
+            // unschedule all deadline emails
+          }else{
+            const cancelEmail = await fetch(`${emailServerURL}/delete-task-notification`,{
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({taskId: deadlineEmailInfo.taskId})
             });
 
-            const result = await cancelEmails.json();
+            const result = await cancelEmail.json();
             if(result.success){
               console.log(result.message);
             }else{
               console.error(result.message);
             }
-            
-            // rescheduling with new offset for each individual session job associated with the schedule 
-            for(const session of studyPlan){
-              sessionEmailInfo = {
-                firstName,
-                scheduleId: scheduleId,
-                email,
-                subject: session.subject,
-                day: session.day,
-                date: session.date,
-                startTime: session.startTime,
-                endTime: session.endTime,
-                offset: scheduleOffset
-              };
-              // getting current data
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const sessionDate = new Date(session.date);
-              if(sessionDate >= today){ 
-                // reschedule session email with updated notification preferences
-                const rescheduleEmail = await fetch(`${emailServerURL}/add-session`, {
-                  method: "POST",
-                  headers: {"Content-Type": "application/json"},
-                  body: JSON.stringify(sessionEmailInfo)
-                });
-
-                const result = await rescheduleEmail.json();
-                if(result.success){
-                  console.log(result.message);
-                }else{
-                  console.error(result.message);
-                }
-              }
-            }
           }
-          
         }
-
-        // Updating scheduled notifications based on user account settings
-        // User has updated their notification settings
-        if(notifsUpdated){
-          const notifQuery = 'UPDATE notification_preferences SET deadline_alert_timing = ?, schedule_alert_timing = ? WHERE user_id = ?';
-          const notifParams = notificationEnabled ? [deadlineOffset, scheduleOffset, userId] : ['never', 'never', userId];
-        
-          await db.promise().query(notifQuery, notifParams);
-          
-          // scheduling or un-scheduling deadlines based on notification setting
-          for(const deadline of deadlines){
-            deadlineEmailInfo = {
-              firstName, 
-              taskId: deadline.task_id, 
-              listName: deadline.list_name,
-              email, 
-              taskDescription: deadline.task_description, 
-              deadline: deadline.deadline, 
-              offset: deadlineOffset
-            };
-
-            // schedule all deadline emails
-            if(notificationEnabled){
-              const scheduleEmail = await fetch(`${emailServerURL}/create-task`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(deadlineEmailInfo)
-              });
-              const result = await scheduleEmail.json();
-                if(result.success){
-                    console.log(result.message);
-                }else{
-                    console.error(result.message);
-              }
-              // unschedule all deadline emails
-            }else{
-              const cancelEmail = await fetch(`${emailServerURL}/delete-task-notification`,{
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({taskId: deadlineEmailInfo.taskId})
-              });
-
-              const result = await cancelEmail.json();
-              if(result.success){
-                console.log(result.message);
-              }else{
-                console.error(result.message);
-              }
-            }
+        // user did not update notifications settings but updated notification preferences
+      }else if(!notifsUpdated && deadlineOffsetUpdated){
+        for(const deadline of deadlines){
+          deadlineEmailInfo = {
+            firstName, 
+            taskId: deadline.task_id, 
+            listName: deadline.list_name,
+            email, 
+            taskDescription: deadline.task_description, 
+            deadline: deadline.deadline, 
+            offset: deadlineOffset
           }
 
-          // scheduling or un-scheduling study sessions based on notification setting
-          // loops through each schedule
-          for(const schedule of schedules){
-            const scheduleId = schedule.id;
-            const studyPlan = JSON.parse(schedule.plan_text);
+          // rescheduling deadline emails with updated notification preferences
+          console.log(`task id: ${deadlineEmailInfo.taskId}`);
+          const rescheduleEmail = await fetch(`${emailServerURL}/reschedule-email`,{
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(deadlineEmailInfo)
+          });
 
-            // un-schedules all session emails associated with the schedule if notifications have been turned off
-            if(!notificationEnabled){
-              const jobsQuery = "SELECT job_id FROM schedule_emails WHERE schedule_id = ?";
-              const [jobIds] = await db.promise().query(jobsQuery, [scheduleId]);
-              const jobIdsArray = jobIds.map(job => job.job_id);
-
-              const cancelEmails = await fetch(`${emailServerURL}/delete-schedule-notifications`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                  jobIds: jobIdsArray,
-                  scheduleId
-                })
-              });
-
-              const result = await cancelEmails.json();
-              if(result.success){
-                console.log(result.message);
-              }else{
-                console.error(result.message);
-              }
-            // schedules emails for each session if notifications have been turned on
-            }else{
-              // loops through each session for a schedule
-              for(const session of studyPlan){
-                sessionEmailInfo = {
-                  firstName,
-                  scheduleId: scheduleId,
-                  email,
-                  subject: session.subject,
-                  day: session.day,
-                  date: session.date,
-                  startTime: session.startTime,
-                  endTime: session.endTime,
-                  offset: scheduleOffset
-                };
-
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const sessionDate = new Date(session.date);
-
-                if(sessionDate >= today){
-                  // schedule session email
-                  const scheduleEmail = await fetch(`${emailServerURL}/add-session`, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(sessionEmailInfo)
-                  });
-
-                  const result = await scheduleEmail.json();
-                  if(result.success){
-                      console.log(result.message);
-                  }else{
-                      console.error(result.message);
-                  }
-                }
-              }
-            }
-          }        
+          const result = await rescheduleEmail.json();
+          if(result.success){
+            console.log(result.message);
+          }else{
+            console.error(result.message);
+          }
         }
-      }catch(notifErr){
-        console.error(notifErr);
-        return res.status(500).json({success: false, message: "Failed to update Notification Preferences"});
       }
+    }catch(notifErr){
+      return res.status(500).json({success: false, message: "Failed to update Notification Preferences"});
     }
 
     const [updatedUserResults] = await db.promise().query(query, [email]);
@@ -813,30 +636,6 @@ app.delete('/delete-study-plan/:id', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing study plan ID' });
   }
 
-  // retrieving job ids for all sessions associated with the schedule
-  const jobsQuery = "SELECT job_id FROM schedule_emails WHERE schedule_id = ?";
-  const [jobIds] = await db.promise().query(jobsQuery, [id]);
-  const jobIdsArray = jobIds.map(job => job.job_id);
-  
-  if(jobIdsArray.length != 0){
-    // deleting all scheduled jobs for sessions associated with the schedule
-    const cancelEmails = await fetch(`${emailServerURL}/delete-schedule-notifications`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          jobIds: jobIdsArray,
-          scheduleId: id
-        })
-    });
-
-    const result = await cancelEmails.json();
-    if(result.success){
-      console.log(result.message);
-    }else{
-      console.error(result.message);
-    }
-  }
-
   try {
       const deleteQuery = 'DELETE FROM studyPlans WHERE id = ?';
       const [result] = await db.promise().query(deleteQuery, [id]);
@@ -862,56 +661,22 @@ app.delete('/delete-user', async (req, res) =>{
   // getting getting users deadlines and unschedule any associated notifications
   const deadlinesQuery = 'SELECT task_id FROM todo_lists INNER JOIN tasks on todo_lists.list_id = tasks.list_id WHERE user_id = ? AND deadline IS NOT NULL AND deadline >= CURRENT_DATE AND completed = 0';
   const [deadlines] = await db.promise().query(deadlinesQuery, [userId]);
-  if(deadlines.length > 0){
-    for(const deadline of deadlines){
-      const deleteEmail = await fetch(`${emailServerURL}/delete-task-notification`,{
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({taskId: deadline.task_id})
-      });
 
-      const result = await deleteEmail.json();
-      if(result.success){
-        console.log(result.message);
-      }else{
-        console.error(result.message);
-      }
+  for(const deadline of deadlines){
+    const deleteEmail = await fetch(`${emailServerURL}/delete-task-notification`,{
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({taskId: deadline.task_id})
+    });
+
+    const result = await deleteEmail.json();
+    if(result.success){
+      console.log(result.message);
+    }else{
+      console.error(result.message);
     }
   }
 
-  // getting all schedules and unschedule any associated notifications
-  const scheduleQuery = 'SELECT id FROM studyPlans WHERE user_email = ?';
-  const [schedules] = await db.promise().query(scheduleQuery, [email]);
-
-  if(schedules.length > 0){
-    for(const schedule of schedules){
-      const scheduleId = schedule.id;
-
-      // retrieving job ids for all sessions associated with the schedule
-      const jobsQuery = "SELECT job_id FROM schedule_emails WHERE schedule_id = ?";
-      const [jobIds] = await db.promise().query(jobsQuery, [scheduleId]);
-      const jobIdsArray = jobIds.map(job => job.job_id);
-      
-      if(jobIdsArray.length != 0){
-        // deleting all scheduled jobs for sessions associated with the schedule
-        const cancelEmails = await fetch(`${emailServerURL}/delete-schedule-notifications`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-              jobIds: jobIdsArray,
-              scheduleId
-            })
-        });
-
-        const result = await cancelEmails.json();
-        if(result.success){
-          console.log(result.message);
-        }else{
-          console.error(result.message);
-        }
-      }
-    }
-  }
 
   const query = 'DELETE FROM users WHERE id = ?';
 
@@ -1419,71 +1184,5 @@ app.get('/get-scheduled-jobs', async(req, res) =>{
     }
     return res.status(200).json({success: true, message: "scheduled jobs retrieved", data: results});
   });
-});
+})
 
-// adding schedule email information to database
-app.post('/save-study-job', async (req, res) =>{
-  const {scheduleId, firstName, email, subject, day, date, startTime, endTime, offset} = req.body;
-  const query = "INSERT INTO schedule_emails (schedule_id, first_name, email, subject, day, date, start_time, end_time, notification_offset) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-  db.query(query, [scheduleId, firstName, email, subject, day, date, startTime, endTime, offset], (err, result) =>{
-    if(err){
-      return res.status(500).json({success: false, message: `Failed to save job for a study session to the database: ${err}`});
-    }else{
-      return res.status(200).json({
-        success: true, 
-        message: `The job has been saved to the database`,
-        job_id: result.insertId
-      });
-    }
-  });
-});
-
-// deleting a list of sessions emails that have already been scheduled
-app.delete('/delete-study-jobs', async(req, res) =>{
-  const { jobIds } = req.body;
-
-  db.beginTransaction((transErr) =>{
-    if(transErr){
-      return res.status(500).json({success: false, message: "This transaction could not be started, the session jobs were not deleted from the database."});
-    }
-
-    const deletePromises = jobIds.map((id) => {
-      const query = "DELETE FROM schedule_emails WHERE job_id = ?";
-      return new Promise((resolve, reject) =>{
-        db.query(query, [id], (err) =>{
-          if(err){
-            return reject(err);
-          }
-          resolve();
-        });
-      });
-    });
-
-    Promise.all(deletePromises).then(() =>{
-      db.commit((commitErr) => {
-        if(commitErr){
-          return db.rollback(() => {
-            res.status(500).json({success: false, message: `Failed to remove job for schedule notifications from the database: ${err}`});
-          });
-        }
-        res.status(200).json({success: true, message: "All jobs have been successfully deleted"});
-      });
-    }).catch((deleteErr) =>{
-      db.rollback(() =>{
-        res.status(500).json({success: false, message: `Failed to remove job for schedule notifications from the database: ${err}`});
-      });
-    });
-    
-  });
-});
-
-app.get("/get-scheduled-session-jobs", async (req, res) =>{
-  db.query("SELECT * FROM schedule_emails", (err, results) => {
-    if(err){
-      console.error("Failed to retrieve scheduled jobs for study sessions from the database: ", err);
-      return res.status(500).json({success: false, message: "Failed to retrieve scheduled jobs for study sessions from the database"});
-    }
-    return res.status(200).json({success: true, message: "scheduled jobs for study sessions retrieved", data: results});
-  });
-});
