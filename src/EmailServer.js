@@ -161,11 +161,7 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
     }
 
     // setting notification time x days/hours before study session depending on user preferences, then sets notification time to start of session
-    
-    //const sessionDateTime = moment(date).startOf("day").add(moment.duration(startTime));
-    //const notificationDate = sessionDateTime.subtract(scheduleOffset, "days").toDate();
-    
-    const parsedStartTime = moment(startTime, "h:mm A"); // Converts startTime to a valid time
+    const parsedStartTime = moment(startTime, "h:mm A");
     const sessionDateTime = moment(date).startOf("day").add({
         hours: parsedStartTime.hours(),
         minutes: parsedStartTime.minutes(),
@@ -195,7 +191,6 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
             const result = await response.json();
             if(result.success){
                 jobId = result.job_id;
-                console.log(result.message);
             }else{
                 console.error(result.message);
                 return;
@@ -224,8 +219,7 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
             to: email,
             subject: `Study Session Reminder: ${subject}`,
             text: `Hello ${firstName},\n
-            You have an upcoming study session for ${subject} on ${day}, ${date},
-            from ${startTime} to ${endTime}.\n
+            You have an upcoming study session for ${subject} on ${day}, ${date}, from ${startTime} to ${endTime}.\n
 
             Happy Studying!\n
             -StudyBuddy`
@@ -247,9 +241,7 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
                 body: JSON.stringify({jobIds: [jobId]})
             });
             const result = await response.json();
-            if(result.success){
-                console.log(result.message);
-            }else{
+            if(!result.success){
                 console.error(result.message);
                 return;
             }
