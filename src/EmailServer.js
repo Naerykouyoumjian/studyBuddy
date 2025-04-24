@@ -36,7 +36,8 @@ const transporter = nodemailer.createTransport({
 });
 
 // stores scheduled jobs by task ID
-const scheduledJobs = {};
+const scheduledDeadlineJobs = {};
+const scheduledStudyJobs = {};
 
 // Function to send email with provided data
 async function sendEmail(mailOptions){
@@ -49,17 +50,27 @@ async function sendEmail(mailOptions){
 }
 
 // enumerates the offset choices
-const offsetMap = {
+const deadlineOffSetMap = {
     "never" : null,
     "1day" : 1,
     "2day" : 2,
     "5day" : 5,
     "1week" : 7,
-}
+};
+
+const scheduleOffsetMap = {
+    "never" : null,
+    "1hour" : 1 / 24,
+    "3hour" : 3 / 24,
+    "12hour" : 12/ 24,
+    "1day" : 1,
+    "3day" : 3,
+    "1week": 7
+};
 
 // function to schedule deadline emails
 async function deadlineEmail(firstName, taskId, listName, email, taskDescription, deadline, offset, newRequest){
-    const deadlineOffset = offsetMap[offset]
+    const deadlineOffset = deadlineOffSetMap[offset]
     if(deadlineOffset === null){
         console.log("Notifications are disabled for deadlines");
         return;
@@ -95,7 +106,7 @@ async function deadlineEmail(firstName, taskId, listName, email, taskDescription
         await sendEmail(mailOptions);
 
         job.stop();
-        delete scheduledJobs[taskId];
+        delete scheduledDeadlineJobs[taskId];
         try{
             const response = await fetch(`${backendURL}/delete-deadline-job`, {
                 method: "DELETE",
@@ -112,7 +123,7 @@ async function deadlineEmail(firstName, taskId, listName, email, taskDescription
             console.error("an error occurred deleting the job from the database: ", error);
         }
     });
-    scheduledJobs[taskId] = job;
+    scheduledDeadlineJobs[taskId] = job;
     if(newRequest){
         try{
             const response = await fetch(`${backendURL}/save-deadline-job`, {
@@ -142,6 +153,111 @@ async function deadlineEmail(firstName, taskId, listName, email, taskDescription
     console.log(`Email scheduled for task ${taskId} on ${moment(notificationDate).format('MM-DD-YYYY')}`);
 }
 
+// function to schedule study session emails
+async function studySessionEmail(firstName, scheduleId, email, subject, day, date, startTime, endTime, offset, newRequest, jobId){
+    const scheduleOffset = scheduleOffsetMap[offset];
+    if(scheduleOffset  === null){
+        console.log("Notifications are disabled for schedules");
+        return;
+    }
+
+    // setting notification time x days/hours before study session depending on user preferences, then sets notification time to start of session
+    const parsedStartTime = moment(startTime, "h:mm A"); // Converts startTime to a valid time
+    const sessionDateTime = moment(date).startOf("day").add({
+        hours: parsedStartTime.hours(),
+        minutes: parsedStartTime.minutes(),
+        seconds: parsedStartTime.seconds()
+    });
+    const notificationDate = sessionDateTime.subtract(scheduleOffset, "days").toDate();
+    const now = new Date();
+
+    // saving new job to database and retrieving job id
+    if(newRequest){
+        try{
+            const response = await fetch(`${backendURL}/save-study-job`,{
+                method: "POST",
+                headers: {"Content-Type" : "application/json"},
+                body: JSON.stringify({
+                    scheduleId,
+                    firstName,
+                    email,
+                    subject,
+                    day,
+                    date,
+                    startTime,
+                    endTime,
+                    offset,
+                })
+            });
+            const result = await response.json();
+            if(result.success){
+                jobId = result.job_id;
+            }else{
+                console.error(result.message);
+                return;
+            }
+        }catch(error){
+            console.error("an error occurred while saving the study session job to the database: ", error);
+            return;
+        }
+    }
+
+     // formatting cron time
+    let cronTime;
+    if(notificationDate < now){
+        // if the notification time has passed, send immediately
+        cronTime = `0 * * * * *`;
+    }else{
+        cronTime = `${notificationDate.getSeconds()} ${notificationDate.getMinutes()} ${notificationDate.getHours()} ${notificationDate.getDate()} ${notificationDate.getMonth() + 1} *`;
+    }
+
+    // Scheduling study session notification
+    const job = cron.schedule(cronTime, async () =>{
+        console.log(`Sending email to ${email} for subject: ${subject}`);
+
+        const mailOptions = {
+            from: "studybuddy4902024@gmail.com",
+            to: email,
+            subject: `Study Session Reminder: ${subject}`,
+            text: `Hello ${firstName},\n
+            You have an upcoming study session for ${subject} on ${day}, ${date}, from ${startTime} to ${endTime}.\n
+
+            Happy Studying!\n
+            -StudyBuddy`
+        };
+
+        await sendEmail(mailOptions);
+
+        // stop job and delete from memory
+        job.stop();
+        if(scheduledStudyJobs[jobId]){
+            delete scheduledStudyJobs[jobId];
+        }
+        
+        // delete job from database
+        try{
+            const response = await fetch(`${backendURL}/delete-study-jobs`, {
+                method: "DELETE",
+                headers: {"Content-Type" : "application/json"},
+                body: JSON.stringify({jobIds: [jobId]})
+            });
+            const result = await response.json();
+            if(!result.success){
+                console.error(result.message);
+                return;
+            }
+        }catch(error){
+            console.error("an error occurred deleting the study session job from the database: ", error);
+            return;
+        }
+    });
+
+    // saving job 
+    scheduledStudyJobs[jobId]= job;
+    
+    console.log(`Email scheduled for  ${subject} on ${moment(notificationDate).format('MM-DD-YYYY')} at ${moment(notificationDate).format('HH:mm')}`);
+
+}
 
 // POST route to handle sending password reset requests
 emailServer.post("/reset-password-email", async (req, res) => {
@@ -208,14 +324,27 @@ emailServer.post("/create-task", async (req, res) =>{
     return res.status(200).json({success: true, message: "Deadline email scheduled."});
 });
 
+// schedules a notification for a new study session
+emailServer.post("/add-session", async (req, res) => {
+    const {firstName, scheduleId, email, subject, day, date, startTime, endTime, offset} = req.body;
+
+    if(offset === 'never'){
+        return res.status(400).json({success: false, message: "Notifications are disabled for schedules."});
+    }
+
+    studySessionEmail(firstName, scheduleId, email, subject, day, date, startTime, endTime, offset, true, null);
+
+    return res.status(200).json({success: true, message: "study session email scheduled."});    
+});
+
 // reschedules notifications for edited deadlines
 emailServer.post("/reschedule-email", async(req, res) =>{
     const {firstName, taskId, listName, email, taskDescription, deadline, offset } = req.body;
-    const deadlineOffset = offsetMap[offset];
+    const deadlineOffset = deadlineOffSetMap[offset];
 
-    if(scheduledJobs[taskId]){
-        scheduledJobs[taskId].stop();
-        delete scheduledJobs[taskId];
+    if(scheduledDeadlineJobs[taskId]){
+        scheduledDeadlineJobs[taskId].stop();
+        delete scheduledDeadlineJobs[taskId];
         try{
             const response = await fetch(`${backendURL}/delete-deadline-job`, {
                 method: "DELETE",
@@ -247,9 +376,9 @@ emailServer.post("/reschedule-email", async(req, res) =>{
 emailServer.post("/delete-task-notification", async (req, res) =>{
     const { taskId } = req.body;
 
-    if(scheduledJobs[taskId]){
-        scheduledJobs[taskId].stop();
-        delete scheduledJobs[taskId];
+    if(scheduledDeadlineJobs[taskId]){
+        scheduledDeadlineJobs[taskId].stop();
+        delete scheduledDeadlineJobs[taskId];
         try{
             const response = await fetch(`${backendURL}/delete-deadline-job`, {
                 method: "DELETE",
@@ -269,12 +398,45 @@ emailServer.post("/delete-task-notification", async (req, res) =>{
     }
     return res.status(200).json({success: true, message: `Email for task ${taskId} was unscheduled`});
 });
+
+// deletes all jobs associated with a schedule  
+emailServer.post("/delete-schedule-notifications", async(req, res) =>{
+    const { jobIds, scheduleId } = req.body;
+    for(const jobId of jobIds){
+        if(scheduledStudyJobs[jobId]){
+            scheduledStudyJobs[jobId].stop();
+            delete scheduledStudyJobs[jobId];
+            console.log(`Cancelled existing job for session ${jobId}`);
+        }
+    }
+    
+    try{
+        const response = await fetch(`${backendURL}/delete-study-jobs`, {
+            method: "DELETE",
+            headers: {"Content-Type" : "application/json"},
+            body: JSON.stringify({jobIds})
+        });
+        const result = await response.json();
+        if(result.success){
+            console.log(result.message);
+        }else{
+            console.error(result.message);
+            return res.status(500).json({ success: false, message: result.message });
+        }
+    }catch(error){
+        console.error("An error occurred deleting the session job from the database", error);
+        return res.status(500).json({ success: false, message: "Server Error while attempting to delete schedule emails" });
+    }
+    console.log(`All Emails for schedule ${scheduleId} were unscheduled`);
+    return res.status(200).json({success: true, message: `Emails for schedule ${scheduleId} were unscheduled`});
+});
+
 //GET route to check server status
 emailServer.get("/", (req, res) =>{
     res.send("Server is running");
 });
 
-// function to initialize the scheduled job list on server start up
+// function to initialize the scheduled jobs lists on server start up
 const init = async () =>{
     console.log("Initializing server...");
     try{
@@ -297,6 +459,32 @@ const init = async () =>{
                 deadlineEmail(first_name, task_id, list_name, email, task_description, deadline, deadline_offset, false)
             })
             
+        }else{
+            console.error(result.message);
+        }
+
+        const sessionResponse = await fetch(`${backendURL}/get-scheduled-session-jobs`, {
+            method: "GET",
+            headers: {"Content-Type" : "application/json"},
+        });
+
+        const sessionResult = await sessionResponse.json();
+        if(sessionResult.success){
+            sessionResult.data.forEach((job) => {
+                const{
+                    job_id,
+                    schedule_id,
+                    first_name,
+                    email,
+                    subject,
+                    day,
+                    date,
+                    start_time,
+                    end_time,
+                    notification_offset
+                } = job;
+                studySessionEmail(first_name, schedule_id, email, subject, day, date, start_time, end_time, notification_offset, false, job_id);
+            })
         }else{
             console.error(result.message);
         }
