@@ -135,6 +135,7 @@ function UserAccount() {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         readOnly={!isEditingFirstName}
+                        className={!isEditingFirstName ? 'readonly-input' : ''}
                     />
                     <span
                         className='edit-icon'
@@ -151,6 +152,7 @@ function UserAccount() {
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         readOnly={!isEditingLastName}
+                        className={!isEditingLastName ? 'readonly-input' : ''}
                     />
                     <span className='edit-icon'
                         onClick={() => setIsEditingLastName(true)}
