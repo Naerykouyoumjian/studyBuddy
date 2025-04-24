@@ -553,23 +553,16 @@ app.put('/update-user', async (req, res) => {
       }
     }
 
+    // updating notification preferences
     if(notifsUpdated || deadlineOffsetUpdated || scheduleOffsetUpdated){
-      // updating notification preferences
       try{
-        const notifQuery = 'UPDATE notification_preferences SET deadline_alert_timing = ?, schedule_alert_timing = ? WHERE user_id = ?';
-        const notifParams = notificationEnabled ? [deadlineOffset, scheduleOffset, userId] : ['never', 'never', userId];
-        
-        await db.promise().query(notifQuery, notifParams);
-        
-        // get data for notifications that need to be scheduled
-        const deadlinesQuery = 'SELECT task_id, list_name, task_description, deadline FROM todo_lists INNER JOIN tasks on todo_lists.list_id = tasks.list_id WHERE user_id = ? AND deadline IS NOT NULL AND deadline >= CURRENT_DATE AND completed = 0';
-        const [deadlines] = await db.promise().query(deadlinesQuery, [userId]);
-
-        const scheduleQuery = 'SELECT id, plan_text FROM studyPlans WHERE user_email = ?';
-        const [schedules] = await db.promise().query(scheduleQuery, [email]);
-
         // user did not update notifications settings but updated deadline notification preferences
         if(!notifsUpdated && deadlineOffsetUpdated){
+          // get data for deadlines that need to be scheduled
+          const deadlinesQuery = 'SELECT task_id, list_name, task_description, deadline FROM todo_lists INNER JOIN tasks on todo_lists.list_id = tasks.list_id WHERE user_id = ? AND deadline IS NOT NULL AND deadline >= CURRENT_DATE AND completed = 0';
+          const [deadlines] = await db.promise().query(deadlinesQuery, [userId]);
+          
+          // Loop through deadlines
           for(const deadline of deadlines){
             deadlineEmailInfo = {
               firstName, 
@@ -601,6 +594,11 @@ app.put('/update-user', async (req, res) => {
 
         // user did not update notifications settings but updated schedule notification preferences
         if(!notifsUpdated && scheduleOffsetUpdated){
+          // get data for study schedules
+          const scheduleQuery = 'SELECT id, plan_text FROM studyPlans WHERE user_email = ?';
+          const [schedules] = await db.promise().query(scheduleQuery, [email]);
+          
+          // loop through schedules
           for(const schedule of schedules){
             const scheduleId = schedule.id;
             const studyPlan = JSON.parse(schedule.plan_text);
@@ -640,19 +638,24 @@ app.put('/update-user', async (req, res) => {
                 endTime: session.endTime,
                 offset: scheduleOffset
               };
+              // getting current data
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const sessionDate = new Date(sessionEmailInfo.date);
+              if(sessionDate >= today){ 
+                // reschedule session email with updated notification preferences
+                const rescheduleEmail = await fetch(`${emailServerURL}/add-session`, {
+                  method: "POST",
+                  headers: {"Content-Type": "application/json"},
+                  body: JSON.stringify(sessionEmailInfo)
+                });
 
-              // reschedule session email with updated notification preferences
-              const rescheduleEmail = await fetch(`${emailServerURL}/add-session`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(sessionEmailInfo)
-              });
-
-              const result = await rescheduleEmail.json();
-              if(result.success){
-                console.log(result.message);
-              }else{
-                console.error(result.message);
+                const result = await rescheduleEmail.json();
+                if(result.success){
+                  console.log(result.message);
+                }else{
+                  console.error(result.message);
+                }
               }
             }
           }
@@ -662,6 +665,11 @@ app.put('/update-user', async (req, res) => {
         // Updating scheduled notifications based on user account settings
         // User has updated their notification settings
         if(notifsUpdated){
+          const notifQuery = 'UPDATE notification_preferences SET deadline_alert_timing = ?, schedule_alert_timing = ? WHERE user_id = ?';
+          const notifParams = notificationEnabled ? [deadlineOffset, scheduleOffset, userId] : ['never', 'never', userId];
+        
+          await db.promise().query(notifQuery, notifParams);
+          
           // scheduling or un-scheduling deadlines based on notification setting
           for(const deadline of deadlines){
             deadlineEmailInfo = {
@@ -746,18 +754,25 @@ app.put('/update-user', async (req, res) => {
                   endTime: session.endTime,
                   offset: scheduleOffset
                 };
-                // schedule session email
-                const scheduleEmail = await fetch(`${emailServerURL}/add-session`, {
-                  method: "POST",
-                  headers: {"Content-Type": "application/json"},
-                  body: JSON.stringify(sessionEmailInfo)
-                });
 
-                const result = await scheduleEmail.json();
-                if(result.success){
-                    console.log(result.message);
-                }else{
-                    console.error(result.message);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const sessionDate = new Date(sessionEmailInfo.date);
+
+                if(sessionDate >= today){
+                  // schedule session email
+                  const scheduleEmail = await fetch(`${emailServerURL}/add-session`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(sessionEmailInfo)
+                  });
+
+                  const result = await scheduleEmail.json();
+                  if(result.success){
+                      console.log(result.message);
+                  }else{
+                      console.error(result.message);
+                  }
                 }
               }
             }
