@@ -641,7 +641,7 @@ app.put('/update-user', async (req, res) => {
               // getting current data
               const today = new Date();
               today.setHours(0, 0, 0, 0);
-              const sessionDate = new Date(sessionEmailInfo.date);
+              const sessionDate = new Date(session.date);
               if(sessionDate >= today){ 
                 // reschedule session email with updated notification preferences
                 const rescheduleEmail = await fetch(`${emailServerURL}/add-session`, {
@@ -757,7 +757,7 @@ app.put('/update-user', async (req, res) => {
 
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                const sessionDate = new Date(sessionEmailInfo.date);
+                const sessionDate = new Date(session.date);
 
                 if(sessionDate >= today){
                   // schedule session email
@@ -779,6 +779,7 @@ app.put('/update-user', async (req, res) => {
           }        
         }
       }catch(notifErr){
+        console.error(notifErr);
         return res.status(500).json({success: false, message: "Failed to update Notification Preferences"});
       }
     }
