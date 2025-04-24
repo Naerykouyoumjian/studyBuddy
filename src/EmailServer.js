@@ -153,6 +153,7 @@ async function deadlineEmail(firstName, taskId, listName, email, taskDescription
     console.log(`Email scheduled for task ${taskId} on ${moment(notificationDate).format('MM-DD-YYYY')}`);
 }
 
+// function to schedule study session emails
 async function studySessionEmail(firstName, scheduleId, email, subject, day, date, startTime, endTime, offset, newRequest, jobId){
     const scheduleOffset = scheduleOffsetMap[offset];
     if(scheduleOffset  === null){
@@ -161,10 +162,6 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
     }
 
     // setting notification time x days/hours before study session depending on user preferences, then sets notification time to start of session
-    
-    //const sessionDateTime = moment(date).startOf("day").add(moment.duration(startTime));
-    //const notificationDate = sessionDateTime.subtract(scheduleOffset, "days").toDate();
-    
     const parsedStartTime = moment(startTime, "h:mm A"); // Converts startTime to a valid time
     const sessionDateTime = moment(date).startOf("day").add({
         hours: parsedStartTime.hours(),
@@ -195,7 +192,6 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
             const result = await response.json();
             if(result.success){
                 jobId = result.job_id;
-                console.log(result.message);
             }else{
                 console.error(result.message);
                 return;
@@ -224,8 +220,7 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
             to: email,
             subject: `Study Session Reminder: ${subject}`,
             text: `Hello ${firstName},\n
-            You have an upcoming study session for ${subject} on ${day}, ${date},
-            from ${startTime} to ${endTime}.\n
+            You have an upcoming study session for ${subject} on ${day}, ${date}, from ${startTime} to ${endTime}.\n
 
             Happy Studying!\n
             -StudyBuddy`
@@ -247,9 +242,7 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
                 body: JSON.stringify({jobIds: [jobId]})
             });
             const result = await response.json();
-            if(result.success){
-                console.log(result.message);
-            }else{
+            if(!result.success){
                 console.error(result.message);
                 return;
             }
@@ -331,6 +324,7 @@ emailServer.post("/create-task", async (req, res) =>{
     return res.status(200).json({success: true, message: "Deadline email scheduled."});
 });
 
+// schedules a notification for a new study session
 emailServer.post("/add-session", async (req, res) => {
     const {firstName, scheduleId, email, subject, day, date, startTime, endTime, offset} = req.body;
 
@@ -405,6 +399,7 @@ emailServer.post("/delete-task-notification", async (req, res) =>{
     return res.status(200).json({success: true, message: `Email for task ${taskId} was unscheduled`});
 });
 
+// deletes all jobs associated with a schedule  
 emailServer.post("/delete-schedule-notifications", async(req, res) =>{
     const { jobIds, scheduleId } = req.body;
     for(const jobId of jobIds){
@@ -441,7 +436,7 @@ emailServer.get("/", (req, res) =>{
     res.send("Server is running");
 });
 
-// function to initialize the scheduled job list on server start up
+// function to initialize the scheduled jobs lists on server start up
 const init = async () =>{
     console.log("Initializing server...");
     try{
