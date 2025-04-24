@@ -555,13 +555,17 @@ app.put('/update-user', async (req, res) => {
 
     // updating notification preferences
     if(notifsUpdated || deadlineOffsetUpdated || scheduleOffsetUpdated){
+      // get data for deadlines that need to be scheduled
+      const deadlinesQuery = 'SELECT task_id, list_name, task_description, deadline FROM todo_lists INNER JOIN tasks on todo_lists.list_id = tasks.list_id WHERE user_id = ? AND deadline IS NOT NULL AND deadline >= CURRENT_DATE AND completed = 0';
+      const [deadlines] = await db.promise().query(deadlinesQuery, [userId]);
+
+      // get data for study schedules
+      const scheduleQuery = 'SELECT id, plan_text FROM studyPlans WHERE user_email = ?';
+      const [schedules] = await db.promise().query(scheduleQuery, [email]);
+      
       try{
         // user did not update notifications settings but updated deadline notification preferences
         if(!notifsUpdated && deadlineOffsetUpdated){
-          // get data for deadlines that need to be scheduled
-          const deadlinesQuery = 'SELECT task_id, list_name, task_description, deadline FROM todo_lists INNER JOIN tasks on todo_lists.list_id = tasks.list_id WHERE user_id = ? AND deadline IS NOT NULL AND deadline >= CURRENT_DATE AND completed = 0';
-          const [deadlines] = await db.promise().query(deadlinesQuery, [userId]);
-          
           // Loop through deadlines
           for(const deadline of deadlines){
             deadlineEmailInfo = {
@@ -594,10 +598,6 @@ app.put('/update-user', async (req, res) => {
 
         // user did not update notifications settings but updated schedule notification preferences
         if(!notifsUpdated && scheduleOffsetUpdated){
-          // get data for study schedules
-          const scheduleQuery = 'SELECT id, plan_text FROM studyPlans WHERE user_email = ?';
-          const [schedules] = await db.promise().query(scheduleQuery, [email]);
-          
           // loop through schedules
           for(const schedule of schedules){
             const scheduleId = schedule.id;
