@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@aws-sdk/client-ssm": "^3.787.0",
     "@fontsource/new-rocker": "^5.1.0",
     "@fontsource/palanquin": "^5.1.0",
     "@testing-library/jest-dom": "^5.17.0",
@@ -21,8 +22,8 @@
     "nodemailer": "^6.9.16",
     "openai": "^4.80.1",
     "react": "^18.3.1",
-    "react-datepicker": "^7.6.0",
     "react-calendar": "^5.1.0",
+    "react-datepicker": "^7.6.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",
     "react-scripts": "^5.0.1",

@@ -21,6 +21,7 @@ function ForgotPassword(){
             const backendURL = process.env.REACT_APP_BACKEND_URL;
             const emailServerURL = process.env.REACT_APP_EMAIL_SERVER_URL;
 
+            console.log("Backend URL: ", backendURL);
             const response = await fetch(`${backendURL}/find-email`,{
                 method: "POST",
                 headers: { "Content-Type" : "application/json"},
