@@ -197,8 +197,6 @@ getPublicIP().then(ip => {
   console.log("Fetched Public IP:", ip);
 });
 
-
-
 //default route to check the server status
 app.get('/', (req, res) => {
   res.send('Server is up and running!');
@@ -257,14 +255,11 @@ app.get('/get-single-study-plan/:planId', async (req, res) => {
     }
 });
 
-
-
 //Connect to mySQL
 db.connect(error => {
   if (error) return console.error('Database connection failed:', error);
   console.log('Connected to MySQL database');
 });
-
 
 //Adding signup route
 app.post('/signup', async (req, res) => {
@@ -542,8 +537,12 @@ app.put('/update-user', async (req, res) => {
     }
     updateParams.push(email);
 
+<<<<<<< HEAD
     if(firstNameUpdated || lastNameUpdated || passwordUpdated || notifsUpdated)
     {
+=======
+    if(firstNameUpdated || lastNameUpdated || passwordUpdated || notifsUpdated){
+>>>>>>> 18a2cc2da78246cb612b8cec93fab89e84e11bb4
       // updating user information
       try{
         const updateQuery = `UPDATE users SET ${updateQueryParams.join(", ")} WHERE email = ?`;
@@ -578,6 +577,23 @@ app.put('/update-user', async (req, res) => {
               offset: deadlineOffset
             };
 
+<<<<<<< HEAD
+=======
+      try{
+        // user did not update notifications settings but updated deadline notification preferences
+        if(!notifsUpdated && deadlineOffsetUpdated){
+          for(const deadline of deadlines){
+            deadlineEmailInfo = {
+              firstName, 
+              taskId: deadline.task_id, 
+              listName: deadline.list_name,
+              email, 
+              taskDescription: deadline.task_description, 
+              deadline: deadline.deadline, 
+              offset: deadlineOffset
+            };
+
+>>>>>>> 18a2cc2da78246cb612b8cec93fab89e84e11bb4
             // rescheduling deadline emails with updated notification preferences
             console.log(`task id: ${deadlineEmailInfo.taskId}`);
             const rescheduleEmail = await fetch(`${emailServerURL}/reschedule-email`,{
@@ -598,7 +614,10 @@ app.put('/update-user', async (req, res) => {
 
         // user did not update notifications settings but updated schedule notification preferences
         if(!notifsUpdated && scheduleOffsetUpdated){
+<<<<<<< HEAD
           // loop through schedules
+=======
+>>>>>>> 18a2cc2da78246cb612b8cec93fab89e84e11bb4
           for(const schedule of schedules){
             const scheduleId = schedule.id;
             const studyPlan = JSON.parse(schedule.plan_text);
@@ -638,6 +657,7 @@ app.put('/update-user', async (req, res) => {
                 endTime: session.endTime,
                 offset: scheduleOffset
               };
+<<<<<<< HEAD
               // getting current data
               const today = new Date();
               today.setHours(0, 0, 0, 0);
@@ -650,6 +670,22 @@ app.put('/update-user', async (req, res) => {
                   body: JSON.stringify(sessionEmailInfo)
                 });
 
+=======
+              
+              // getting current date data
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const sessionDate = new Date(session.date);
+
+              if(sessionDate >= today){
+                // reschedule session email with updated notification preferences
+                const rescheduleEmail = await fetch(`${emailServerURL}/add-session`, {
+                  method: "POST",
+                  headers: {"Content-Type": "application/json"},
+                  body: JSON.stringify(sessionEmailInfo)
+                });
+
+>>>>>>> 18a2cc2da78246cb612b8cec93fab89e84e11bb4
                 const result = await rescheduleEmail.json();
                 if(result.success){
                   console.log(result.message);
@@ -659,7 +695,10 @@ app.put('/update-user', async (req, res) => {
               }
             }
           }
+<<<<<<< HEAD
           
+=======
+>>>>>>> 18a2cc2da78246cb612b8cec93fab89e84e11bb4
         }
 
         // Updating scheduled notifications based on user account settings
@@ -779,7 +818,10 @@ app.put('/update-user', async (req, res) => {
           }        
         }
       }catch(notifErr){
+<<<<<<< HEAD
         console.error(notifErr);
+=======
+>>>>>>> 18a2cc2da78246cb612b8cec93fab89e84e11bb4
         return res.status(500).json({success: false, message: "Failed to update Notification Preferences"});
       }
     }
@@ -1442,7 +1484,11 @@ app.post('/save-study-job', async (req, res) =>{
 // deleting a list of sessions emails that have already been scheduled
 app.delete('/delete-study-jobs', async(req, res) =>{
   const { jobIds } = req.body;
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 18a2cc2da78246cb612b8cec93fab89e84e11bb4
   db.beginTransaction((transErr) =>{
     if(transErr){
       return res.status(500).json({success: false, message: "This transaction could not be started, the session jobs were not deleted from the database."});
@@ -1478,6 +1524,10 @@ app.delete('/delete-study-jobs', async(req, res) =>{
   });
 });
 
+<<<<<<< HEAD
+=======
+// getting previously scheduled session jobs
+>>>>>>> 18a2cc2da78246cb612b8cec93fab89e84e11bb4
 app.get("/get-scheduled-session-jobs", async (req, res) =>{
   db.query("SELECT * FROM schedule_emails", (err, results) => {
     if(err){
