@@ -162,11 +162,7 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
     }
 
     // setting notification time x days/hours before study session depending on user preferences, then sets notification time to start of session
-<<<<<<< HEAD
-    const parsedStartTime = moment(startTime, "h:mm A"); // Converts startTime to a valid time
-=======
     const parsedStartTime = moment(startTime, "h:mm A");
->>>>>>> 18a2cc2da78246cb612b8cec93fab89e84e11bb4
     const sessionDateTime = moment(date).startOf("day").add({
         hours: parsedStartTime.hours(),
         minutes: parsedStartTime.minutes(),
