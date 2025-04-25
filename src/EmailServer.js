@@ -98,8 +98,8 @@ async function deadlineEmail(firstName, taskId, listName, email, taskDescription
             to: email,
             subject: `Task Reminder: ${taskDescription}`,
             text: `Hello ${firstName},\n
-            You have an upcoming deadline for the task: "${taskDescription}",
-            on your to-do list: "${listName}". It has a deadline set for ${moment(deadline).format('MM-DD-YYYY')}\n
+            You have an upcoming deadline for the task: "${taskDescription}", on your to-do list: "${listName}". It has a deadline set for ${moment(deadline).format('MM-DD-YYYY')}\n
+            
             -StudyBuddy`
         };
 
@@ -220,9 +220,9 @@ async function studySessionEmail(firstName, scheduleId, email, subject, day, dat
             to: email,
             subject: `Study Session Reminder: ${subject}`,
             text: `Hello ${firstName},\n
-            You have an upcoming study session for ${subject} on ${day}, ${date}, from ${startTime} to ${endTime}.\n
+            You have an upcoming study session for ${subject} on ${day},  ${moment(notificationDate).format('MM-DD-YYYY')}, from ${startTime} to ${endTime}.
 
-            Happy Studying!\n
+            Happy Studying!
             -StudyBuddy`
         };
 
