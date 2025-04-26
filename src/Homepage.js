@@ -42,32 +42,41 @@ function Homepage({onSignUpClick}){
             Let AI help you make your life easier
         </h1>
 
-        <div className = "feature-headers">
-            <h2 className = "plans">Customized Study Plans</h2>
-            <h2 className = "lists">Personalized To-Do Lists</h2>
-            <h2 className = "rem-serv">Reminder Service</h2>
+        <div className="feature-section-wrapper">
+            <div className="feature-section">
+                <h2 className="plans">Customized Study Plans</h2>
+                <p className="plan-description">
+                    Save time and effort with Study Buddy's AI-powered study schedules.
+                </p>
+                <img className="tools-icon"
+                    src={tools}
+                    alt="pencil crossed over ruler icon" />
+            </div>
+
+            <div className="feature-section">
+                <h2 className="lists">Personalized To-Do Lists</h2>
+                <p className="list-description">
+                    Easily customize and organize your study tasks.
+                </p>
+                <img className="list-icon"
+                    src={list}
+                    alt="three lines with bullet points" />
+            </div>
+
+            <div className="feature-section">
+                <h2 className="rem-serv">Reminder Service</h2>
+                <p className="rem-description">
+                    Never miss a study session or deadline with Study Buddy's built-in reminder service.
+                </p>
+                <img className="reminder-icon"
+                    src={reminder}
+                    alt="page with exclamation point being turned" />
+            </div>
         </div>
 
-        <div className = "feature-descriptions">
-            <p className = "plan-description"> Save time and effort with Study Buddy's AI-powered study schedules.</p>
-            <p className = "list-description"> Easily customize and organize your study tasks.</p>
-            <p className = "rem-description"> Never miss a study session or deadline with Studdy Buddy's built-in reminder service.</p>
-        </div>
-
-        <div className = "feature-icons">
-            <img className = "tools-icon"
-                src = {tools}
-                alt = "pencil crossed over ruler icon" />
-            <img className = "list-icon"
-                    src = {list}
-                    alt = "three lines with bullet points" />
-            <img className = "reminder-icon"
-                    src = {reminder}
-                    alt = "page with exclimation point being turned" />
-        </div>
         <div className="sign-up-container">
-        <button onClick={onSignUpClick} className="sign-up-button">
-            Sign Up Here
+            <button onClick={onSignUpClick} className="sign-up-button">
+                Sign Up Here
             </button>
         </div>
     </>

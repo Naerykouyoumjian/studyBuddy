@@ -1,4 +1,3 @@
-
 body {
   font-family: 'Arial', sans-serif;
   background-color: #f8f9fa;
@@ -46,7 +45,8 @@ body {
   color: #4c00ff;
 }
 
-.field input {
+.field input,
+.field select {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -80,17 +80,17 @@ body {
 }
 
 .remove-subject-btn {
-      margin-left: 10px;
-      background: red;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-      border-radius: 5px;
-  }
-  .remove-subject-btn:hover {
-      background: darkred;
-  }
+  margin-left: 10px;
+  background: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.remove-subject-btn:hover {
+  background: darkred;
+}
 
 .add-subject-btn {
   background-color: #4c00ff;
@@ -106,7 +106,6 @@ body {
 .add-subject-btn:hover {
   background-color: #3a00cc;
 }
-
 
 .available-days {
   margin-top: 0px; 
@@ -145,7 +144,6 @@ body {
   text-align: right;
 }
 
-
 .time-dropdown {
   padding: 5px;
   border: 1px solid #ccc;
@@ -155,7 +153,6 @@ body {
   text-align: center;
   box-sizing: border-box; 
 }
-
 
 .generate-plan-btn {
   background-color: #4c00ff;
@@ -172,7 +169,6 @@ body {
   background-color: #3a00cc;
 }
 
-
 .calendar-section {
   border-radius: 8px;
   padding: 20px;
@@ -185,7 +181,6 @@ body {
   font-size: 18px;
   margin-bottom: 10px;
 }
-
 
 @media (max-width: 768px) {
   .top-row {
