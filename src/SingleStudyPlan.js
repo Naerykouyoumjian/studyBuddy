@@ -62,16 +62,18 @@ const SingleStudyPlan = () => {
                 <h2>{studyPlan.plan_text.title || `Study Plan #${studyPlan.id}`}</h2>
                 <h3>Study Schedule</h3>
                 {Array.isArray(studyPlan.plan_text) && studyPlan.plan_text.length > 0 ? (
-                    <ul>
-                        {studyPlan.plan_text.map((session, index) => (
-                            <li key={index}>
-                                <strong>{session.day}:</strong> {session.subject} ({session.startTime} - {session.endTime})
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No sessions found for this study plan.</p>
-                )}
+  <div className="session-list">
+    {studyPlan.plan_text.map((session, index) => (
+      <div key={index} className="session-card">
+        <p><strong>Date:</strong> {session.day} {session.date}</p>
+        <p><strong>Subject:</strong> {session.subject}</p>
+        <p><strong>Hours:</strong> {session.startTime} - {session.endTime}</p>
+      </div>
+    ))}
+  </div>
+) : (
+  <p>No sessions found for this study plan.</p>
+)}
 
                 <button className="delete-plan-btn" onClick={handleDelete}>
                 🗑️ Delete This Plan.

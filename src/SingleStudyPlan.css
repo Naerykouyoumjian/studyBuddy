@@ -2,6 +2,25 @@
     padding: 20px;
 }
 
+.session-list {
+  margin-top: 20px;
+}
+
+.session-card {
+  background-color: #f9f9f9;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.session-card p {
+  margin: 6px 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
 .delete-plan-btn {
   background-color: #e74c3c;
   color: white;
