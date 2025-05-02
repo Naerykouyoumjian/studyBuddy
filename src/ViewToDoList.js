@@ -270,6 +270,7 @@ function ViewToDoList() {
                 selected={newTaskDate}
                 onChange={(date) => setNewTaskDate(date)}
                 placeholderText="Pick a date"
+                minDate={new Date()} //no past date
                 renderCustomHeader={renderDateHeader(null, newTaskDate, (_, val) => setNewTaskDate(val))}
                 customInput={
                   <button className="icon-btn" title="Select deadline">
@@ -317,6 +318,7 @@ function ViewToDoList() {
                         selected={task.deadline}
                         onChange={(d) => handleDateChange(index, d)}
                         placeholderText="Change date"
+                        minDate={new Date()}//no past date
                         renderCustomHeader={renderDateHeader(index, task.deadline, handleDateChange)}
                         customInput={<CalendarButton />}
                       />

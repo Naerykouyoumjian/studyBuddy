@@ -232,6 +232,7 @@ function CreateToDoList() {
                 selected={newTaskDate}
                 onChange={(date) => setNewTaskDate(date)}
                 placeholderText="Pick a date"
+                minDate={new Date()} //no past date
                 // "None" button in the pop-up
                 renderCustomHeader={renderDateHeader(null, newTaskDate, (_, newVal) => setNewTaskDate(newVal))}
                 customInput={
@@ -269,6 +270,7 @@ function CreateToDoList() {
                         selected={dateVal}
                         onChange={(d) => handleDateChange(index, d)}
                         placeholderText="Change date"
+                        minDate={new Date()} //no past date
                         // "None" button in the pop-up
                         renderCustomHeader={renderDateHeader(index, dateVal, handleDateChange)}
                         customInput={<CalendarButton />}
